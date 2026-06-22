@@ -1,0 +1,40 @@
+{% for lead in leads %}
+<tr>
+    <td><span class="text-muted small">{{ lead.display_id }}</span></td>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+            <span class="fw-semibold">{{ lead.name }}</span>
+        </div>
+    </td>
+    <td>{{ lead.get_company_display }}</td>
+    <td class="small">{{ lead.phone }}</td>
+    <td class="small">{{ lead.email|default:"—" }}</td>
+    <td class="text-muted small">{{ lead.source.name|default:"—" }}</td>
+    <td class="small fw-semibold">{{ lead.branch.name|default:"—" }}</td>
+    <td class="small">{{ lead.takhlees_id|default:"—" }}</td>
+    <td class="small">{{ lead.passport_no|default:"—" }}</td>
+    <td class="small">{{ lead.eid_no|default:"—" }}</td>
+    <td>
+        {% if lead.staff_status %}
+        <span class="badge-status badge-{{ lead.staff_status.badge_style }}">{{ lead.staff_status.name }}</span>
+        {% else %}—{% endif %}
+    </td>
+    <td>
+        {% if lead.followup_status %}
+        <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
+        {% else %}—{% endif %}
+    </td>
+    <td>
+        <span class="badge-status badge-{% if lead.backoffice_status == 'verified' %}won{% elif lead.backoffice_status == 'rejected' %}closed{% else %}pending{% endif %}">
+            {{ lead.get_backoffice_status_display }}
+        </span>
+    </td>
+    <td class="small">{{ lead.created_by.get_username }}</td>
+    <td class="small text-muted">{{ lead.get_pipeline_stage_display }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="15" class="text-center text-muted py-4">No leads found.</td>
+</tr>
+{% endfor %}

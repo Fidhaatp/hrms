@@ -1,0 +1,88 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">{{ module_title }}</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">{{ module_title }}</span>
+        </div>
+    </div>
+</div>
+
+{% if module_intro %}
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0">{{ module_intro }}</p>
+</div>
+{% endif %}
+
+{% if stats %}
+<div class="row g-3 mb-4 dashboard-equal-row">
+    {% for stat in stats %}
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-blue w-100 h-100">
+            <div class="stat-label">{{ stat.label }}</div>
+            <div class="stat-value">{{ stat.value }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if workflow_steps %}
+<div class="section-card mb-4">
+    <div class="section-card-header mb-2">
+        <div class="section-card-title">Workflow</div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2" style="font-size:13px">
+        {% for step in workflow_steps %}
+        <span class="badge-status badge-active">{{ step }}</span>
+        {% if not forloop.last %}<i class="bi bi-chevron-right text-muted"></i>{% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if quick_links %}
+<div class="section-card mb-4">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Quick access</div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% for link in quick_links %}
+        <a href="{{ link.url }}" class="topbar-quick-add text-decoration-none" style="background:var(--surface-2);color:var(--text)">
+            <i class="bi {{ link.icon|default:'bi-link-45deg' }}"></i> {{ link.label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if extra_table_headers %}
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    {% for h in extra_table_headers %}
+                    <th>{{ h }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in extra_rows %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ extra_table_headers|length }}" class="text-center text-muted py-4">No records yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

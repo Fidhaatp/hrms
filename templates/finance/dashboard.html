@@ -1,0 +1,41 @@
+<div class="dashboard-page portal-dashboard">
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Finance Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Finance overview</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="stat-label">Payroll ready</div>
+                <div class="stat-value">{{ metrics.payroll_ready }}</div>
+                <div class="stat-sub">Approved leave records</div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="stat-label">Incentives (month)</div>
+                <div class="stat-value">{{ metrics.incentive_total }}</div>
+                <div class="stat-sub">Total incentives</div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="stat-label">Collections</div>
+                <div class="stat-value">{{ metrics.collections_total }}</div>
+                <div class="stat-sub">Achieved targets this month</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-card portal-help-banner">
+        <p class="mb-0">Salary workflow: Attendance + Incentive → HR → Finance → Payroll</p>
+    </div>
+</div>

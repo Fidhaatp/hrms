@@ -1,0 +1,496 @@
+{% load lead_tags %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Follow-up leads</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Leads</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-building me-2 text-success"></i><strong>Procedures in progress</strong> — submit steps with the list icon. When every procedure is approved, the lead moves to <a href="{% url 'followup:all_leads' %}" class="text-decoration-none fw-semibold">Leads</a>. {{ total_count }} lead{{ total_count|pluralize }} here.</p>
+</div>
+
+{% include "portal/leads/includes/lead_status_filter_bar.html" %}
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Branch</th>
+                    <th>Staff</th>
+                    <th>Staff status</th>
+                    <th>Docs</th>
+                    <th title="With follow-up, or already sent to back office">Handoff</th>
+                    <th title="Follow-up progress for this customer">Customer status</th>
+                    <th title="Current service procedure step">Procedure status</th>
+                    <th title="All procedures completed or still in progress">Lead status</th>
+                    <th title="Service expiry — shown on expiry calendar">Service expiry</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr>
+                    <td class="text-muted small">{{ lead.display_id }}</td>
+                    <td class="fw-semibold">{{ lead.name }}</td>
+                    <td>{{ lead.get_company_display }}</td>
+                    <td class="small fw-semibold">{{ lead.branch.name|default:"—" }}</td>
+                    <td class="text-muted small">{{ lead.created_by.get_username }}</td>
+                    <td>
+                        {% if lead.staff_status %}
+                        <span class="badge-status badge-{{ lead.staff_status.badge_style }}">{{ lead.staff_status.name }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {% if lead.service_documents_zip %}1 ZIP{% endif %}{% if lead.extracted_doc_count %}{% if lead.service_documents_zip %} + {% endif %}{{ lead.extracted_doc_count }} file{{ lead.extracted_doc_count|pluralize }}{% endif %}
+                        {% if lead.staff_zip_documents_checked %}
+                        <div class="text-success mt-1"><i class="bi bi-check-circle-fill"></i> Checked</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge-status badge-{{ lead.followup_queue_badge }}">{{ lead.followup_queue_display }}</span></td>
+                    <td>
+                        <button type="button" class="btn btn-link p-0 border-0 text-decoration-none followup-status-btn"
+                            title="Update status"
+                            data-name="{{ lead.name|escapejs }}"
+                            data-status="{{ lead.followup_status_id }}"
+                            data-docs-checked="{% if lead.staff_zip_documents_checked %}1{% else %}0{% endif %}"
+                            data-url="{% url 'followup:lead_status' lead.pk %}">
+                            {% if lead.followup_status %}
+                            <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
+                            {% else %}
+                            <span class="badge-status badge-pending">Set status</span>
+                            {% endif %}
+                        </button>
+                    </td>
+                    <td class="small">{% include "portal/leads/includes/lead_procedure_status_cell.html" %}</td>
+                    <td>
+                        {% if lead.procedure_lead_status_label == "—" %}
+                        <span class="text-muted">—</span>
+                        {% else %}
+                        <span class="badge-status badge-{{ lead.procedure_lead_status_badge }}">{{ lead.procedure_lead_status_label }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{% include "portal/leads/includes/service_expire_cell.html" %}</td>
+                    <td>
+                        <div class="d-flex gap-1 align-items-center flex-nowrap">
+                            <button type="button" class="action-btn followup-expire-btn" title="Service expiry date"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-service-expire-date="{% if lead.service_expire_date %}{{ lead.service_expire_date|date:'Y-m-d' }}{% endif %}"
+                                data-url="{% url 'followup:lead_expire_date' lead.pk %}">
+                                <i class="bi bi-calendar-event"></i>
+                            </button>
+                            <button type="button" class="action-btn followup-procedure-btn" title="Service procedures"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-service="{{ lead.service.name|default:''|escapejs }}"
+                                data-steps='{{ lead|lead_procedure_steps_json }}'
+                                data-submit-url="{% url 'followup:lead_procedure_submit' lead.pk %}">
+                                <i class="bi bi-list-check"></i>
+                            </button>
+                            {% if lead.service_documents_zip %}
+                            <button type="button" class="action-btn followup-docs-btn" title="View & check documents"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-zip-check='{{ lead|lead_zip_check_json }}'
+                                data-url="{% url 'followup:lead_check_docs' lead.pk %}">
+                                <i class="bi bi-file-earmark-zip-fill"></i>
+                            </button>
+                            {% endif %}
+                            <button type="button" class="action-btn lead-view-detail-btn" title="View lead data"
+                                data-detail='{{ lead|lead_detail_json }}'>
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="13" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No leads with ongoing procedures. Completed leads are on the <a href="{% url 'followup:all_leads' %}">Leads</a> page.{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="followupDocumentsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="followupDocumentsForm" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Staff documents</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="followupDocsLeadName"></p>
+                    {% if followup_check_form and followup_check_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in followup_check_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="border rounded p-3 mb-3 bg-light" id="followupDocsZipHeader"></div>
+                    <p class="small fw-semibold mb-2">Files inside ZIP — view each file and check when verified</p>
+                    <div id="followupDocsFileList"></div>
+                    <p class="text-muted small mb-0 d-none" id="followupDocsEmpty">No files found inside the ZIP.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save checks</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="followupStatusModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="followupStatusForm" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Update status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2" id="followupStatusLeadName"></p>
+                    <p class="small text-warning mb-3 d-none" id="followupStatusDocsWarning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>View and check all staff ZIP files before setting status to <strong>Approved</strong>.
+                    </p>
+                    {% if followup_status_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in followup_status_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="fuStatusSelect">Status *</label>
+                        <select name="followup_status" id="fuStatusSelect" class="form-control" required>
+                            <option value="">Select follow-up status…</option>
+                            {% for status in lead_statuses %}
+                            <option value="{{ status.pk }}" data-sends-backoffice="{% if status.sends_to_backoffice %}1{% else %}0{% endif %}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if followup_status_form.followup_status.errors %}<div class="text-danger small">{{ followup_status_form.followup_status.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label branch-form-label" for="fuStatusNote">Roadmap note</label>
+                        <textarea name="roadmap_note" id="fuStatusNote" class="form-control" rows="2" placeholder="Optional note"></textarea>
+                    </div>
+                    <p class="small text-muted mb-0 mt-3"><i class="bi bi-info-circle me-1"></i><strong>Approved</strong> sends the lead to back office.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add" id="followupStatusSubmit"><i class="bi bi-check-lg"></i> Save status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="followupExpireModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="followupExpireForm" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Service expiry date</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="followupExpireLeadName"></p>
+                    {% if followup_expire_form and followup_expire_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in followup_expire_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="mb-0">
+                        <label class="form-label branch-form-label" for="fuExpireDate">Service expire date</label>
+                        <input type="date" name="service_expire_date" id="fuExpireDate" class="form-control" />
+                        <div class="form-text">This date appears on the <strong>Expiry calendar</strong> with a yellow dot.</div>
+                        {% if followup_expire_form.service_expire_date.errors %}<div class="text-danger small">{{ followup_expire_form.service_expire_date.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-calendar-check"></i> Save date</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="followupProcedureModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="followupProcedureForm" action="#" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Service procedures</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2" id="followupProcedureLead"></p>
+                    <p class="text-muted small mb-3" id="followupProcedureService"></p>
+                    {% if followup_procedure_form and followup_procedure_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in followup_procedure_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div id="followupProcedureSteps" class="border rounded p-3 mb-3 bg-light"></div>
+                    <div id="fuProcedureSubmitSection" class="border rounded p-3">
+                        <input type="hidden" name="procedure_id" id="fuProcedureId" />
+                        <div class="small fw-semibold mb-2">Submit next procedure step</div>
+                        <div class="mb-2 small text-muted" id="fuNextProcedureLabel"></div>
+                        <div class="mb-2">
+                            <label class="form-label branch-form-label" for="fuProcedureDoc">Document *</label>
+                            <input type="file" name="document" id="fuProcedureDoc" class="form-control" />
+                            {% if followup_procedure_form.document.errors %}<div class="text-danger small mt-1">{{ followup_procedure_form.document.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label branch-form-label" for="fuProcedureNote">Note</label>
+                            <textarea name="followup_note" id="fuProcedureNote" class="form-control" rows="2" placeholder="Optional note"></textarea>
+                        </div>
+                    </div>
+                    <p id="fuProcedureInfoMessage" class="text-muted small mb-0 d-none"></p>
+                </div>
+                <div class="modal-footer d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="topbar-quick-add" id="fuProcedureSubmit"><i class="bi bi-upload"></i> Submit step</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function renderFollowupDocumentsModal(payload, leadName) {
+    const list = document.getElementById('followupDocsFileList');
+    const empty = document.getElementById('followupDocsEmpty');
+    const header = document.getElementById('followupDocsZipHeader');
+    const files = payload.files || [];
+    list.innerHTML = '';
+
+    header.innerHTML = `
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-zip-fill text-success" style="font-size:1.25rem"></i>
+            <div>
+                <div class="fw-semibold small">${payload.zip_label || 'Staff ZIP'}</div>
+                <div class="text-muted small">${files.length ? files.length + ' file' + (files.length === 1 ? '' : 's') + ' inside' : 'ZIP uploaded'}</div>
+            </div>
+        </div>`;
+
+    if (!files.length) {
+        empty.classList.remove('d-none');
+        const wrap = document.createElement('div');
+        wrap.className = 'form-check mt-2';
+        wrap.innerHTML = `<input type="checkbox" name="zip_verified" class="form-check-input" id="fuZipVerified" ${payload.zip_verified ? 'checked' : ''} /><label class="form-check-label" for="fuZipVerified">I verified the staff ZIP contents</label>`;
+        list.appendChild(wrap);
+        return;
+    }
+
+    empty.classList.add('d-none');
+    files.forEach((file) => {
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center justify-content-between border-bottom py-2 gap-2';
+        row.innerHTML = `
+            <div class="form-check mb-0 flex-grow-1">
+                <input type="checkbox" name="file_${file.id}" class="form-check-input" id="fuFile${file.id}" ${file.checked ? 'checked' : ''} />
+                <label class="form-check-label" for="fuFile${file.id}">${file.name}</label>
+            </div>
+            ${file.url ? `<button type="button" class="btn btn-sm btn-light lead-file-view-btn flex-shrink-0" data-url="${file.url}" data-label="${file.name}">View</button>` : ''}`;
+        list.appendChild(row);
+    });
+}
+
+function openFollowupDocumentsModal(btn) {
+    document.getElementById('followupDocumentsForm').action = btn.dataset.url;
+    document.getElementById('followupDocsLeadName').textContent = btn.dataset.name || '';
+    let payload = {};
+    try {
+        payload = JSON.parse(btn.dataset.zipCheck || '{}');
+    } catch (e) { payload = {}; }
+    renderFollowupDocumentsModal(payload, btn.dataset.name || '');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupDocumentsModal')).show();
+}
+
+function updateFollowupStatusSubmit(docsChecked) {
+    const select = document.getElementById('fuStatusSelect');
+    const submit = document.getElementById('followupStatusSubmit');
+    const warning = document.getElementById('followupStatusDocsWarning');
+    const option = select.options[select.selectedIndex];
+    const needsDocs = option && option.dataset.sendsBackoffice === '1';
+    const blocked = needsDocs && docsChecked !== '1';
+    submit.disabled = blocked;
+    warning.classList.toggle('d-none', !blocked);
+}
+
+function openFollowupStatusModal(btn) {
+    document.getElementById('followupStatusForm').action = btn.dataset.url;
+    document.getElementById('followupStatusLeadName').textContent = btn.dataset.name || '';
+    const select = document.getElementById('fuStatusSelect');
+    const statusId = btn.dataset.status || '';
+    const hasOption = statusId && Array.from(select.options).some((o) => o.value === statusId);
+    select.value = hasOption ? statusId : '';
+    document.getElementById('fuStatusNote').value = '';
+    updateFollowupStatusSubmit(btn.dataset.docsChecked || '0');
+    document.getElementById('fuStatusSelect').onchange = () => updateFollowupStatusSubmit(btn.dataset.docsChecked || '0');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupStatusModal')).show();
+}
+
+function statusBadgeHtml(status) {
+    if (status === 'approved') return '<span class="badge-status badge-won">Approved</span>';
+    if (status === 'pending') return '<span class="badge-status badge-pending">Pending back office</span>';
+    if (status === 'rejected') return '<span class="badge-status badge-closed">Rejected</span>';
+    return '<span class="badge-status badge-new">Not started</span>';
+}
+
+function renderFollowupProcedureModal(steps) {
+    const wrap = document.getElementById('followupProcedureSteps');
+    const procedureId = document.getElementById('fuProcedureId');
+    const submitSection = document.getElementById('fuProcedureSubmitSection');
+    const infoMessage = document.getElementById('fuProcedureInfoMessage');
+    const nextLabel = document.getElementById('fuNextProcedureLabel');
+    const submitBtn = document.getElementById('fuProcedureSubmit');
+    const docInput = document.getElementById('fuProcedureDoc');
+
+    function hideSubmitForm(message) {
+        submitSection.classList.add('d-none');
+        submitBtn.classList.add('d-none');
+        procedureId.value = '';
+        submitBtn.disabled = true;
+        docInput.required = false;
+        if (message) {
+            infoMessage.textContent = message;
+            infoMessage.classList.remove('d-none');
+        } else {
+            infoMessage.textContent = '';
+            infoMessage.classList.add('d-none');
+        }
+    }
+
+    function showSubmitForm(next) {
+        submitSection.classList.remove('d-none');
+        submitBtn.classList.remove('d-none');
+        infoMessage.classList.add('d-none');
+        infoMessage.textContent = '';
+        procedureId.value = String(next.procedure_id);
+        nextLabel.textContent = `Next step: ${next.name}`;
+        submitBtn.disabled = false;
+        docInput.required = true;
+    }
+
+    wrap.innerHTML = '';
+    if (!steps || !steps.length) {
+        wrap.innerHTML = '<p class="text-muted small mb-0">No procedures configured for this service.</p>';
+        hideSubmitForm('No configured steps.');
+        return;
+    }
+    let next = null;
+    let pendingReview = null;
+    steps.forEach((step) => {
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between align-items-start border-bottom py-2 gap-2';
+        const meta = step.doc_name
+            ? `<div class="text-muted small mt-1"><i class="bi bi-paperclip me-1"></i>${step.doc_name}</div>`
+            : '';
+        row.innerHTML = `
+            <div>
+                <div class="small fw-semibold">${step.order}. ${step.name}</div>
+                ${meta}
+            </div>
+            <div>${statusBadgeHtml(step.status)}</div>
+        `;
+        wrap.appendChild(row);
+        if (!next && step.can_submit_now) next = step;
+        if (!pendingReview && step.status === 'pending') pendingReview = step;
+    });
+    if (next) {
+        showSubmitForm(next);
+        return;
+    }
+    if (pendingReview) {
+        hideSubmitForm(`Waiting for back office review: ${pendingReview.name}.`);
+        return;
+    }
+    hideSubmitForm('All procedure steps are completed and approved.');
+}
+
+function openFollowupExpireModal(btn) {
+    document.getElementById('followupExpireForm').action = btn.dataset.url;
+    document.getElementById('followupExpireLeadName').textContent = btn.dataset.name || '';
+    document.getElementById('fuExpireDate').value = btn.dataset.serviceExpireDate || '';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupExpireModal')).show();
+}
+
+function openFollowupProcedureModal(btn) {
+    document.getElementById('followupProcedureForm').action = btn.dataset.submitUrl;
+    document.getElementById('followupProcedureLead').textContent = btn.dataset.name || '';
+    document.getElementById('followupProcedureService').textContent = btn.dataset.service || '';
+    document.getElementById('fuProcedureDoc').value = '';
+    document.getElementById('fuProcedureNote').value = '';
+    let steps = [];
+    try {
+        steps = JSON.parse(btn.dataset.steps || '[]');
+    } catch (e) { steps = []; }
+    renderFollowupProcedureModal(steps);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupProcedureModal')).show();
+}
+
+document.querySelectorAll('.followup-docs-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openFollowupDocumentsModal(btn));
+});
+document.querySelectorAll('.followup-status-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openFollowupStatusModal(btn));
+});
+document.querySelectorAll('.followup-expire-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openFollowupExpireModal(btn));
+});
+document.querySelectorAll('.followup-procedure-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openFollowupProcedureModal(btn));
+});
+{% if show_followup_check_modal and check_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('followupDocumentsForm').action = "{% url 'followup:lead_check_docs' check_lead.pk %}";
+    document.getElementById('followupDocsLeadName').textContent = "{{ check_lead.name|escapejs }}";
+    renderFollowupDocumentsModal(JSON.parse('{{ check_lead|lead_zip_check_json|escapejs }}'), "{{ check_lead.name|escapejs }}");
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupDocumentsModal')).show();
+});
+{% endif %}
+{% if show_followup_status_modal and status_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('followupStatusForm').action = "{% url 'followup:lead_status' status_lead.pk %}";
+    document.getElementById('followupStatusLeadName').textContent = "{{ status_lead.name|escapejs }}";
+    document.getElementById('fuStatusSelect').value = "{{ status_lead.followup_status_id }}";
+    updateFollowupStatusSubmit("{% if status_lead.staff_zip_documents_checked %}1{% else %}0{% endif %}");
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupStatusModal')).show();
+});
+{% endif %}
+{% if show_followup_expire_modal and expire_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('followupExpireForm').action = "{% url 'followup:lead_expire_date' expire_lead.pk %}";
+    document.getElementById('followupExpireLeadName').textContent = "{{ expire_lead.name|escapejs }}";
+    document.getElementById('fuExpireDate').value = "{% if expire_lead.service_expire_date %}{{ expire_lead.service_expire_date|date:'Y-m-d' }}{% endif %}";
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupExpireModal')).show();
+});
+{% endif %}
+{% if show_followup_procedure_modal and procedure_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('followupProcedureForm');
+    form.action = "{% url 'followup:lead_procedure_submit' procedure_lead.pk %}";
+    document.getElementById('followupProcedureLead').textContent = "{{ procedure_lead.name|escapejs }}";
+    document.getElementById('followupProcedureService').textContent = "{{ procedure_lead.service.name|default:''|escapejs }}";
+    renderFollowupProcedureModal(JSON.parse('{{ procedure_lead|lead_procedure_steps_json|escapejs }}'));
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupProcedureModal')).show();
+});
+{% endif %}
+</script>
+
+{% include "portal/leads/includes/lead_detail_view_modal.html" %}
+{% include "portal/leads/includes/lead_file_preview_modal.html" %}

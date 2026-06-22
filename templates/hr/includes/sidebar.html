@@ -1,0 +1,42 @@
+{% load profile_tags %}
+<nav id="sidebar">
+    <div class="sidebar-brand">
+        {% url 'hr:dashboard' as dashboard_url %}
+        {% include "core/includes/brand_logo.html" with brand_url=dashboard_url brand_subtitle="HR Portal" %}
+    </div>
+
+    <div class="sidebar-nav">
+        {% for section in hr_nav_sections %}
+            {% if section.label %}
+            <div class="nav-section-heading{% if section.step %} nav-section-heading--stepped{% endif %}">
+                {% if section.step %}<span class="nav-section-step">{{ section.step }}</span>{% endif %}
+                <span class="nav-section-heading-text">{{ section.label }}</span>
+            </div>
+            {% endif %}
+            <ul class="nav-item-group{% if section.label %} nav-item-group-section{% endif %}">
+                {% for item in section.items %}
+                <li>
+                    <a class="nav-link-item{% if active_nav == item.nav_key %} active{% endif %}" href="{% url item.url_name %}">
+                        <span class="nav-icon"><i class="{{ item.icon }}"></i></span>
+                        <span class="nav-link-text">{{ item.label }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'hr:profile' %}" class="sidebar-user text-decoration-none mb-2">
+            {% profile_avatar request.user size="sm" extra_class="hr-user-avatar" %}
+            <div class="sidebar-user-info">
+                <div class="user-name">{{ hr_display_name }}</div>
+                <div class="user-role">{{ hr_role }}</div>
+            </div>
+        </a>
+        <a href="{% url 'core:logout' %}" class="nav-link-item py-2" style="font-size:12px">
+            <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span class="nav-link-text">Sign out</span>
+        </a>
+    </div>
+</nav>

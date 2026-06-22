@@ -1,0 +1,158 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Leave Requests</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Leave</span>
+        </div>
+    </div>
+    <div>
+        <button class="topbar-quick-add" type="button" onclick="showAddLeaveModal()">
+            <i class="bi bi-plus-lg"></i> Request Leave
+        </button>
+    </div>
+</div>
+
+{% if leave_summary %}
+<div class="section-card mb-4 py-3 px-3">
+    <div class="section-card-title mb-1">Yearly leave ({{ leave_summary.year }})</div>
+    <div class="section-card-subtitle">
+        {{ leave_summary.remaining }} of {{ leave_summary.entitlement }} days remaining
+    </div>
+</div>
+{% endif %}
+
+{% if leave_balances %}
+<p class="dashboard-section-label">Category balance ({{ leave_balances.0.year }})</p>
+<div class="row g-3 mb-4">
+    {% for balance in leave_balances %}
+    <div class="col-6 col-lg-4 d-flex">
+        <div class="stat-card card-blue w-100 h-100">
+            <div class="card-top">
+                <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+            </div>
+            <div class="stat-label">{{ balance.leave_category.name }}</div>
+            <div class="stat-value">{{ balance.remaining }}</div>
+            <div class="stat-sub">{{ balance.used }}/{{ balance.entitlement }} days used</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-card">
+    <div class="section-card-header mb-3">
+        <div>
+            <div class="section-card-title">My leave history</div>
+            <div class="section-card-subtitle">Category + type for each request</div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Days</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in leave_requests %}
+                <tr>
+                    <td>{{ req.leave_category.name }}</td>
+                    <td><span class="fw-semibold">{{ req.leave_type.name }}</span></td>
+                    <td class="text-muted small">{{ req.start_date|date:"d M Y" }}</td>
+                    <td class="text-muted small">{{ req.end_date|date:"d M Y" }}</td>
+                    <td>{{ req.days_count }}</td>
+                    <td class="small">{{ req.reason|truncatewords:12 }}</td>
+                    <td>
+                        {% if req.status == 'approved' %}
+                        <span class="badge-status badge-won">Approved</span>
+                        {% elif req.status == 'rejected' %}
+                        <span class="badge-status badge-closed">Rejected</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ req.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No leave requests yet. Click <strong>Request Leave</strong> to apply.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addLeaveModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url leave_add_url_name %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Request leave</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if leave_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in leave_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="{{ leave_form.leave_category.id_for_label }}">Leave category *</label>
+                            {{ leave_form.leave_category }}
+                            <div class="form-text small">Which balance to use (e.g. Yearly Leave)</div>
+                            {% if leave_form.leave_category.errors %}<div class="text-danger small mt-1">{{ leave_form.leave_category.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="{{ leave_form.leave_type.id_for_label }}">Leave type *</label>
+                            {{ leave_form.leave_type }}
+                            <div class="form-text small">Reason: Sick, Casual, etc.</div>
+                            {% if leave_form.leave_type.errors %}<div class="text-danger small mt-1">{{ leave_form.leave_type.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="{{ leave_form.start_date.id_for_label }}">Start date *</label>
+                            {{ leave_form.start_date }}
+                            {% if leave_form.start_date.errors %}<div class="text-danger small mt-1">{{ leave_form.start_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="{{ leave_form.end_date.id_for_label }}">End date *</label>
+                            {{ leave_form.end_date }}
+                            {% if leave_form.end_date.errors %}<div class="text-danger small mt-1">{{ leave_form.end_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label" for="{{ leave_form.reason.id_for_label }}">Reason *</label>
+                            {{ leave_form.reason }}
+                            {% if leave_form.reason.errors %}<div class="text-danger small mt-1">{{ leave_form.reason.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-send-fill"></i> Submit request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAddLeaveModal() {
+    const el = document.getElementById('addLeaveModal');
+    if (el) new bootstrap.Modal(el).show();
+}
+{% if show_leave_modal %}
+document.addEventListener('DOMContentLoaded', showAddLeaveModal);
+{% endif %}
+</script>

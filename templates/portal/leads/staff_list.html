@@ -1,0 +1,712 @@
+{% load lead_tags %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">My Leads</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Leads</span>
+        </div>
+    </div>
+    <div>
+        <button class="topbar-quick-add" type="button" id="staffAddLeadBtn">
+            <i class="bi bi-plus-lg"></i> Add Lead
+        </button>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-info-circle me-2 text-success"></i>
+    {% if staff_branch %}
+    Your branch: <strong>{{ staff_branch.name }}</strong> — <strong>Add</strong> with name, service, and phone. <strong>Edit</strong> (pencil) changes those fields. <strong>Update</strong> (file icon) adds email, documents, and payment until <strong>Converted</strong>.
+    {% else %}
+    Select your <strong>branch</strong> when adding a lead. <strong>Edit</strong> = name, phone, service. <strong>Update</strong> = email, documents, payment. <strong>Converted</strong> locks both.
+    {% endif %}
+    </p>
+</div>
+
+{% include "portal/leads/includes/lead_status_filter_bar.html" %}
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Service</th>
+                    <th>Phone</th>
+                    <th class="text-center">Docs</th>
+                    <th class="text-center">Payment</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+                            <div>
+                                <span class="fw-semibold">{{ lead.name }}</span>
+                                <div class="text-muted small">{{ lead.display_id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted small">{{ lead.service.name|default:"—" }}</td>
+                    <td class="small">{{ lead.phone }}</td>
+                    <td class="text-center">
+                        {% if lead.service_documents_zip %}
+                        <i class="bi bi-check-circle-fill text-success" title="Documents uploaded" style="font-size:1.1rem"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle-fill text-danger" title="Documents not uploaded" style="font-size:1.1rem"></i>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if lead.payment_confirmed %}
+                        <i class="bi bi-check-circle-fill text-success" title="Payment confirmed" style="font-size:1.1rem"></i>
+                        {% else %}
+                        <i class="bi bi-x-circle-fill text-danger" title="Payment not confirmed" style="font-size:1.1rem"></i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-link p-0 border-0 text-decoration-none staff-lead-status-btn"
+                            title="Update status"
+                            data-name="{{ lead.name|escapejs }}"
+                            data-status="{{ lead.staff_status_id }}"
+                            data-lost-reason="{{ lead.lost_reason_type_id|default:'' }}"
+                            data-url="{% url 'staff:lead_status' lead.pk %}">
+                            {% if lead.staff_status %}
+                            <span class="badge-status badge-{{ lead.staff_status.badge_style }}">{{ lead.staff_status.name }}</span>
+                            {% else %}
+                            <span class="badge-status badge-pending">Set status</span>
+                            {% endif %}
+                            {% if lead.staff_status.code == 'lost' and lead.lost_reason_type %}
+                            <div class="text-muted small mt-1">{{ lead.lost_reason_type.name }}</div>
+                            {% endif %}
+                            {% if lead.sent_to_followup_at %}
+                            <div class="text-muted small mt-1">Sent to follow-up</div>
+                            {% endif %}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 align-items-center flex-nowrap">
+                            {% if lead.staff_can_edit_details %}
+                            <button type="button" class="action-btn staff-lead-edit-btn" title="Edit name, phone, service"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-phone-country="{{ lead|lead_phone_country|escapejs }}"
+                                data-phone-national="{{ lead|lead_phone_national|escapejs }}"
+                                data-service="{{ lead.service_id|default:'' }}"
+                                data-url="{% url 'staff:lead_edit' lead.pk %}">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button type="button" class="action-btn staff-lead-update-btn" title="Update email, documents, payment"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-email="{{ lead.email|default:''|escapejs }}"
+                                data-company="{{ lead.company }}"
+                                data-source="{{ lead.source_id|default:'' }}"
+                                data-notes="{{ lead.notes|escapejs }}"
+                                data-has-zip="{% if lead.service_documents_zip %}1{% else %}0{% endif %}"
+                                data-zip-name="{{ lead.service_zip_filename|escapejs }}"
+                                data-zip-url="{% if lead.service_documents_zip %}{{ lead.service_documents_zip.url }}{% endif %}"
+                                data-payment-verified="{% if lead.payment_verified %}1{% else %}0{% endif %}"
+                                data-has-payment-screenshot="{% if lead.payment_screenshot %}1{% else %}0{% endif %}"
+                                data-payment-screenshot-url="{% if lead.payment_screenshot %}{{ lead.payment_screenshot.url }}{% endif %}"
+                                data-payment-screenshot-name="{{ lead.payment_screenshot_filename|escapejs }}"
+                                data-url="{% url 'staff:lead_update' lead.pk %}">
+                                <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                            </button>
+                            {% endif %}
+                            <button type="button" class="action-btn staff-lead-history-btn" title="Status history"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-display-id="{{ lead.display_id }}"
+                                data-history='{{ lead|staff_status_history_json }}'>
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No leads yet. Click <strong>Add Lead</strong>.{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addLeadModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url lead_add_url %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Add lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if staff_branch %}
+                    <p class="text-muted small mb-3"><i class="bi bi-building me-1"></i>Branch: <strong>{{ staff_branch.name }}</strong></p>
+                    {% endif %}
+                    {% if lead_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">{% for e in lead_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <div class="row g-3">
+                        {% if "branch" in lead_form.fields %}
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Branch *</label>
+                            {{ lead_form.branch }}
+                            {% if lead_form.branch.errors %}<div class="text-danger small">{{ lead_form.branch.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Name *</label>
+                            {{ lead_form.name }}
+                            {% if lead_form.name.errors %}<div class="text-danger small">{{ lead_form.name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Service *</label>
+                            {{ lead_form.service }}
+                            {% if lead_form.service.errors %}<div class="text-danger small">{{ lead_form.service.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label branch-form-label">Country *</label>
+                            {{ lead_form.phone_country }}
+                            {% if lead_form.phone_country.errors %}<div class="text-danger small">{{ lead_form.phone_country.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label branch-form-label">Mobile number *</label>
+                            {{ lead_form.phone }}
+                            <div class="text-muted small mt-1" id="leadPhoneHint">UAE: enter exactly 9 digits (e.g. 501234567)</div>
+                            {% if lead_form.phone.errors %}<div class="text-danger small">{{ lead_form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>After saving, use <strong>Edit</strong> (pencil) for name/phone/service or <strong>Update</strong> (file icon) for documents and payment.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-send-fill"></i> Add lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editLeadModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="staffLeadEditForm" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Edit lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="staffEditLeadName"></p>
+                    {% if lead_edit_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">{% for e in lead_edit_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label branch-form-label" for="id_edit_name">Name *</label>
+                            <input type="text" name="name" id="id_edit_name" class="form-control" required />
+                            {% if lead_edit_form.name.errors %}<div class="text-danger small">{{ lead_edit_form.name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label" for="id_edit_service">Service *</label>
+                            <select name="service" id="id_edit_service" class="form-control lead-service-select" required>
+                                <option value="">Select service</option>
+                                {% for svc in lead_edit_form.fields.service.queryset %}
+                                <option value="{{ svc.pk }}">{{ svc.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if lead_edit_form.service.errors %}<div class="text-danger small">{{ lead_edit_form.service.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label branch-form-label" for="id_edit_phone_country">Country *</label>
+                            <select name="phone_country" id="id_edit_phone_country" class="form-control">
+                                {% for code, label in lead_edit_form.fields.phone_country.choices %}
+                                <option value="{{ code }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label branch-form-label" for="id_edit_phone">Mobile number *</label>
+                            <input type="text" name="phone" id="id_edit_phone" class="form-control" inputmode="numeric" />
+                            <div class="text-muted small mt-1" id="editLeadPhoneHint"></div>
+                            {% if lead_edit_form.phone.errors %}<div class="text-danger small">{{ lead_edit_form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateLeadModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="staffLeadUpdateForm" action="#" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Update lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="staffUpdateLeadName"></p>
+                    {% if lead_update_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in lead_update_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="id_update_email">Email</label>
+                            <input type="email" name="email" id="id_update_email" class="form-control" placeholder="email@company.com"
+                                value="{% if update_lead %}{{ lead_update_form.email.value|default:'' }}{% endif %}" />
+                            {% if lead_update_form.email.errors %}<div class="text-danger small">{{ lead_update_form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="id_update_company">Type *</label>
+                            <select name="company" id="id_update_company" class="form-control" required>
+                                <option value="">Select type</option>
+                                <option value="company"{% if update_lead and lead_update_form.company.value == 'company' %} selected{% endif %}>Company</option>
+                                <option value="individual"{% if update_lead and lead_update_form.company.value == 'individual' %} selected{% endif %}>Individual</option>
+                            </select>
+                            {% if lead_update_form.company.errors %}<div class="text-danger small">{{ lead_update_form.company.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="id_update_source">Source</label>
+                            <select name="source" id="id_update_source" class="form-control">
+                                <option value="">Select source</option>
+                                {% for src in lead_update_form.fields.source.queryset %}
+                                <option value="{{ src.pk }}"{% if update_lead and lead_update_form.source.value|stringformat:'s' == src.pk|stringformat:'s' %} selected{% endif %}>{{ src.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if lead_update_form.source.errors %}<div class="text-danger small">{{ lead_update_form.source.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label" for="id_lead_service_zip">Service documents (ZIP) <span id="staffZipRequiredMark">*</span></label>
+                            <div id="staffCurrentZipWrap" class="staff-current-zip mb-2 d-none">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge-status badge-won"><i class="bi bi-file-earmark-zip-fill me-1"></i>Uploaded</span>
+                                    <a href="#" id="staffCurrentZipLink" class="small fw-semibold text-decoration-none" target="_blank" rel="noopener"></a>
+                                </div>
+                            </div>
+                            <input type="file" name="lead_service_zip" id="id_lead_service_zip" class="form-control"
+                                accept=".zip,application/zip,application/x-zip-compressed" />
+                            <div class="form-text small" id="staffZipHelp">Upload all documents for this service in one ZIP file.</div>
+                            {% if lead_update_form.lead_service_zip.errors %}<div class="text-danger small">{{ lead_update_form.lead_service_zip.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small fw-semibold mb-2"><i class="bi bi-credit-card me-1"></i>Payment</div>
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="payment_verified" id="id_update_payment_verified" class="form-check-input" value="1"{% if update_lead and lead_update_form.payment_verified.value %} checked{% endif %}>
+                                    <label class="form-check-label" for="id_update_payment_verified">Payment received</label>
+                                </div>
+                                {% if lead_update_form.payment_verified.errors %}<div class="text-danger small mb-2">{{ lead_update_form.payment_verified.errors.0 }}</div>{% endif %}
+                                <div id="staffUpdatePaymentWrap" class="mb-2 d-none">
+                                    <div class="small text-muted mb-1">Current screenshot</div>
+                                    <a href="#" id="staffUpdatePaymentLink" target="_blank" rel="noopener" class="small d-inline-flex align-items-center gap-1">
+                                        <i class="bi bi-image"></i><span id="staffUpdatePaymentName"></span>
+                                    </a>
+                                </div>
+                                <label class="form-label branch-form-label" for="id_update_payment_screenshot">Payment screenshot</label>
+                                <input type="file" name="payment_screenshot" id="id_update_payment_screenshot" class="form-control" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" />
+                                <div class="form-text small">Upload a screenshot of the payment (image only).</div>
+                                {% if lead_update_form.payment_screenshot.errors %}<div class="text-danger small">{{ lead_update_form.payment_screenshot.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label" for="id_update_notes">Notes</label>
+                            <textarea name="notes" id="id_update_notes" class="form-control" rows="3" placeholder="Lead details">{% if update_lead %}{{ lead_update_form.notes.value|default:'' }}{% endif %}</textarea>
+                            {% if lead_update_form.notes.errors %}<div class="text-danger small">{{ lead_update_form.notes.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staffLeadStatusModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="staffLeadStatusForm" action="#" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Update status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2" id="staffStatusLeadName"></p>
+                    <p class="small text-muted mb-3">Status only — use <strong>Edit</strong> for name/phone/service and <strong>Update</strong> for email, documents, and payment.</p>
+                    {% if lead_status_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for e in lead_status_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="id_staff_status">Status *</label>
+                        <select name="staff_status" id="id_staff_status" class="form-control" required>
+                            {% for status in lead_statuses %}
+                            <option value="{{ status.pk }}" data-code="{{ status.code }}" data-sends-followup="{% if status.sends_to_followup %}1{% else %}0{% endif %}"{% if status_lead and lead_status_form.staff_status.value|stringformat:'s' == status.pk|stringformat:'s' %} selected{% endif %}>{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if lead_status_form.staff_status.errors %}<div class="text-danger small">{{ lead_status_form.staff_status.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3 d-none" id="staffLostReasonWrap">
+                        <label class="form-label branch-form-label" for="id_lost_reason_type">Lost reason *</label>
+                        <select name="lost_reason_type" id="id_lost_reason_type" class="form-control">
+                            <option value="">Select lost reason</option>
+                            {% for reason in lost_reason_types %}
+                            <option value="{{ reason.pk }}"{% if status_lead and lead_status_form.lost_reason_type.value|stringformat:'s' == reason.pk|stringformat:'s' %} selected{% endif %}>{{ reason.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if lead_status_form.lost_reason_type.errors %}<div class="text-danger small">{{ lead_status_form.lost_reason_type.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label branch-form-label" for="id_status_change_note">Note</label>
+                        <textarea name="status_change_note" id="id_status_change_note" class="form-control" rows="2" placeholder="Optional note saved in status history"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staffLeadHistoryModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title">Status history</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="staffHistoryLeadName"></p>
+                <ul class="list-unstyled mb-0 small" id="staffLeadHistoryList"></ul>
+                <p class="text-muted small mb-0 d-none" id="staffLeadHistoryEmpty">No status changes recorded yet.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ lead_phone_rules|json_script:"lead-phone-rules" }}
+
+<script>
+function showAddLeadModal() {
+    const el = document.getElementById('addLeadModal');
+    if (!el || typeof bootstrap === 'undefined') return;
+    applyLeadPhoneCountryRules();
+    bootstrap.Modal.getOrCreateInstance(el).show();
+}
+
+const leadPhoneRules = (() => {
+    const el = document.getElementById('lead-phone-rules');
+    return el ? JSON.parse(el.textContent) : {};
+})();
+
+function applyLeadPhoneCountryRules() {
+    applyPhoneFieldRules('id_phone_country', 'id_phone', 'leadPhoneHint');
+}
+
+function applyEditLeadPhoneRules() {
+    applyPhoneFieldRules('id_edit_phone_country', 'id_edit_phone', 'editLeadPhoneHint');
+}
+
+function applyPhoneFieldRules(countryId, phoneId, hintId) {
+    const countrySelect = document.getElementById(countryId);
+    const phoneInput = document.getElementById(phoneId);
+    const hint = document.getElementById(hintId);
+    if (!countrySelect || !phoneInput) return;
+    const rule = leadPhoneRules[countrySelect.value] || leadPhoneRules['+971'];
+    if (!rule) return;
+    phoneInput.maxLength = rule.max;
+    phoneInput.placeholder = rule.example;
+    const lengthText = rule.min === rule.max
+        ? `exactly ${rule.max} digits`
+        : `${rule.min}–${rule.max} digits`;
+    if (hint) {
+        hint.textContent = `${rule.label}: enter ${lengthText} (e.g. ${rule.example})`;
+    }
+    if (phoneInput.value) {
+        phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, rule.max);
+    }
+}
+
+document.getElementById('id_phone_country')?.addEventListener('change', applyLeadPhoneCountryRules);
+document.getElementById('id_phone')?.addEventListener('input', (event) => {
+    const input = event.target;
+    const max = parseInt(input.maxLength || '15', 10);
+    input.value = input.value.replace(/\D/g, '').slice(0, max);
+});
+document.getElementById('id_edit_phone_country')?.addEventListener('change', applyEditLeadPhoneRules);
+document.getElementById('id_edit_phone')?.addEventListener('input', (event) => {
+    const input = event.target;
+    const max = parseInt(input.maxLength || '15', 10);
+    input.value = input.value.replace(/\D/g, '').slice(0, max);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    applyLeadPhoneCountryRules();
+    applyEditLeadPhoneRules();
+});
+
+function setStaffCurrentZipDisplay(hasZip, zipName, zipUrl) {
+    const wrap = document.getElementById('staffCurrentZipWrap');
+    const link = document.getElementById('staffCurrentZipLink');
+    if (!wrap || !link) return;
+    if (hasZip && zipName) {
+        wrap.classList.remove('d-none');
+        link.textContent = zipName;
+        link.href = zipUrl || '#';
+    } else {
+        wrap.classList.add('d-none');
+        link.textContent = '';
+        link.href = '#';
+    }
+}
+
+function openStaffLeadEditModal(btn) {
+    const form = document.getElementById('staffLeadEditForm');
+    form.action = btn.dataset.url;
+    document.getElementById('staffEditLeadName').textContent = btn.dataset.name || '';
+    document.getElementById('id_edit_name').value = btn.dataset.name || '';
+    document.getElementById('id_edit_service').value = btn.dataset.service || '';
+    document.getElementById('id_edit_phone_country').value = btn.dataset.phoneCountry || '+971';
+    document.getElementById('id_edit_phone').value = btn.dataset.phoneNational || '';
+    applyEditLeadPhoneRules();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editLeadModal')).show();
+}
+
+function openStaffLeadUpdateModal(btn) {
+    const form = document.getElementById('staffLeadUpdateForm');
+    const zipInput = document.getElementById('id_lead_service_zip');
+    const zipMark = document.getElementById('staffZipRequiredMark');
+    const zipHelp = document.getElementById('staffZipHelp');
+    form.action = btn.dataset.url;
+    document.getElementById('staffUpdateLeadName').textContent = btn.dataset.name || '';
+    document.getElementById('id_update_email').value = btn.dataset.email || '';
+    document.getElementById('id_update_company').value = btn.dataset.company || '';
+    document.getElementById('id_update_source').value = btn.dataset.source || '';
+    document.getElementById('id_update_notes').value = btn.dataset.notes || '';
+    zipInput.value = '';
+    const hasZip = btn.dataset.hasZip === '1';
+    setStaffCurrentZipDisplay(hasZip, btn.dataset.zipName || '', btn.dataset.zipUrl || '');
+    zipInput.required = !hasZip;
+    zipMark.style.display = hasZip ? 'none' : 'inline';
+    zipHelp.textContent = hasZip
+        ? 'Current file shown above — choose a new file only to replace it.'
+        : 'Upload all documents for this service in one ZIP file.';
+    const paymentCheck = document.getElementById('id_update_payment_verified');
+    const screenshotInput = document.getElementById('id_update_payment_screenshot');
+    const hasScreenshot = btn.dataset.hasPaymentScreenshot === '1';
+    if (paymentCheck) {
+        paymentCheck.checked = btn.dataset.paymentVerified === '1';
+    }
+    if (screenshotInput) {
+        screenshotInput.value = '';
+    }
+    setStaffUpdatePaymentDisplay(
+        hasScreenshot,
+        btn.dataset.paymentScreenshotName || '',
+        btn.dataset.paymentScreenshotUrl || ''
+    );
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('updateLeadModal')).show();
+}
+
+function toggleStaffLostReasonField() {
+    const select = document.getElementById('id_staff_status');
+    const wrap = document.getElementById('staffLostReasonWrap');
+    const lostSelect = document.getElementById('id_lost_reason_type');
+    if (!select || !wrap || !lostSelect) return;
+    const option = select.options[select.selectedIndex];
+    const isLost = option && option.dataset.code === 'lost';
+    wrap.classList.toggle('d-none', !isLost);
+    lostSelect.required = isLost;
+    if (!isLost) {
+        lostSelect.value = '';
+    }
+}
+
+function setStaffCurrentPaymentDisplay(hasScreenshot, screenshotName, screenshotUrl) {
+    setStaffPaymentDisplay(
+        'staffCurrentPaymentWrap',
+        'staffCurrentPaymentLink',
+        'staffCurrentPaymentName',
+        hasScreenshot,
+        screenshotName,
+        screenshotUrl
+    );
+}
+
+function setStaffUpdatePaymentDisplay(hasScreenshot, screenshotName, screenshotUrl) {
+    setStaffPaymentDisplay(
+        'staffUpdatePaymentWrap',
+        'staffUpdatePaymentLink',
+        'staffUpdatePaymentName',
+        hasScreenshot,
+        screenshotName,
+        screenshotUrl
+    );
+}
+
+function setStaffPaymentDisplay(wrapId, linkId, nameId, hasScreenshot, screenshotName, screenshotUrl) {
+    const wrap = document.getElementById(wrapId);
+    const link = document.getElementById(linkId);
+    const nameEl = document.getElementById(nameId);
+    if (!wrap || !link || !nameEl) return;
+    if (hasScreenshot && screenshotUrl) {
+        wrap.classList.remove('d-none');
+        link.href = screenshotUrl;
+        nameEl.textContent = screenshotName || 'View screenshot';
+    } else {
+        wrap.classList.add('d-none');
+        link.href = '#';
+        nameEl.textContent = '';
+    }
+}
+
+function toggleStaffStatusFields() {
+    toggleStaffLostReasonField();
+}
+
+function renderStaffStatusHistory(items, listId, emptyId) {
+    const list = document.getElementById(listId);
+    const empty = document.getElementById(emptyId);
+    if (!list || !empty) return;
+    list.innerHTML = '';
+    const rows = items || [];
+    if (!rows.length) {
+        empty.classList.remove('d-none');
+        return;
+    }
+    empty.classList.add('d-none');
+    rows.forEach((row) => {
+        const li = document.createElement('li');
+        li.className = 'mb-3 pb-3 border-bottom';
+        const reason = row.reason ? `<div class="text-muted mt-1"><i class="bi bi-tag-fill me-1"></i>${row.reason}</div>` : '';
+        const note = row.note ? `<div class="text-muted mt-1">${row.note}</div>` : '';
+        li.innerHTML = `<div class="fw-semibold">${row.from_status} → ${row.to_status}</div>${reason}${note}<div class="text-muted small mt-1">${row.by} · ${row.at}</div>`;
+        list.appendChild(li);
+    });
+}
+
+function openStaffLeadHistoryModal(btn) {
+    const label = btn.dataset.displayId
+        ? `${btn.dataset.name || ''} (${btn.dataset.displayId})`
+        : (btn.dataset.name || '');
+    document.getElementById('staffHistoryLeadName').textContent = label;
+    let history = [];
+    try {
+        history = JSON.parse(btn.dataset.history || '[]');
+    } catch (e) {
+        history = [];
+    }
+    renderStaffStatusHistory(history, 'staffLeadHistoryList', 'staffLeadHistoryEmpty');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('staffLeadHistoryModal')).show();
+}
+
+function openStaffLeadStatusModal(btn) {
+    const form = document.getElementById('staffLeadStatusForm');
+    form.action = btn.dataset.url;
+    document.getElementById('staffStatusLeadName').textContent = btn.dataset.name || '';
+    document.getElementById('id_staff_status').value = btn.dataset.status || '';
+    document.getElementById('id_lost_reason_type').value = btn.dataset.lostReason || '';
+    document.getElementById('id_status_change_note').value = '';
+    toggleStaffStatusFields();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('staffLeadStatusModal')).show();
+}
+
+document.getElementById('id_staff_status')?.addEventListener('change', toggleStaffStatusFields);
+
+document.getElementById('staffAddLeadBtn')?.addEventListener('click', showAddLeadModal);
+document.querySelectorAll('.staff-lead-edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openStaffLeadEditModal(btn));
+});
+document.querySelectorAll('.staff-lead-update-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openStaffLeadUpdateModal(btn));
+});
+document.querySelectorAll('.staff-lead-status-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openStaffLeadStatusModal(btn));
+});
+document.querySelectorAll('.staff-lead-history-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openStaffLeadHistoryModal(btn));
+});
+{% if show_lead_modal %}document.addEventListener('DOMContentLoaded', showAddLeadModal);{% endif %}
+{% if show_lead_status_modal and status_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('staffLeadStatusForm');
+    form.action = "{% url 'staff:lead_status' status_lead.pk %}";
+    document.getElementById('staffStatusLeadName').textContent = "{{ status_lead.name|escapejs }}";
+    document.getElementById('id_staff_status').value = "{{ status_lead.staff_status_id }}";
+    document.getElementById('id_lost_reason_type').value = "{{ status_lead.lost_reason_type_id|default:'' }}";
+    toggleStaffStatusFields();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('staffLeadStatusModal')).show();
+});
+{% endif %}
+{% if show_lead_basic_edit_modal and basic_edit_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('staffLeadEditForm');
+    form.action = "{% url 'staff:lead_edit' basic_edit_lead.pk %}";
+    document.getElementById('staffEditLeadName').textContent = "{{ basic_edit_lead.name|escapejs }}";
+    document.getElementById('id_edit_name').value = "{{ basic_edit_lead.name|escapejs }}";
+    document.getElementById('id_edit_service').value = "{{ basic_edit_lead.service_id|default:'' }}";
+    document.getElementById('id_edit_phone_country').value = "{{ basic_edit_lead|lead_phone_country|escapejs }}";
+    document.getElementById('id_edit_phone').value = "{{ basic_edit_lead|lead_phone_national|escapejs }}";
+    applyEditLeadPhoneRules();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editLeadModal')).show();
+});
+{% endif %}
+{% if show_lead_update_modal and update_lead %}
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('staffLeadUpdateForm');
+    form.action = "{% url 'staff:lead_update' update_lead.pk %}";
+    document.getElementById('staffUpdateLeadName').textContent = "{{ update_lead.name|escapejs }}";
+    const hasZip = {% if update_lead.service_documents_zip %}true{% else %}false{% endif %};
+    setStaffCurrentZipDisplay(
+        hasZip,
+        "{% if update_lead.service_documents_zip %}{{ update_lead.service_zip_filename|escapejs }}{% endif %}",
+        "{% if update_lead.service_documents_zip %}{{ update_lead.service_documents_zip.url }}{% endif %}"
+    );
+    document.getElementById('id_lead_service_zip').required = !hasZip;
+    document.getElementById('staffZipRequiredMark').style.display = hasZip ? 'none' : 'inline';
+    document.getElementById('staffZipHelp').textContent = hasZip
+        ? 'Current file shown above — choose a new file only to replace it.'
+        : 'Upload all documents for this service in one ZIP file.';
+    const paymentCheck = document.getElementById('id_update_payment_verified');
+    const screenshotInput = document.getElementById('id_update_payment_screenshot');
+    const hasScreenshot = {% if update_lead.payment_screenshot %}true{% else %}false{% endif %};
+    if (paymentCheck) {
+        paymentCheck.checked = {% if update_lead.payment_verified %}true{% else %}false{% endif %};
+    }
+    if (screenshotInput) {
+        screenshotInput.value = '';
+    }
+    setStaffUpdatePaymentDisplay(
+        hasScreenshot,
+        "{% if update_lead.payment_screenshot %}{{ update_lead.payment_screenshot_filename|escapejs }}{% endif %}",
+        "{% if update_lead.payment_screenshot %}{{ update_lead.payment_screenshot.url }}{% endif %}"
+    );
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('updateLeadModal')).show();
+});
+{% endif %}
+</script>

@@ -1,0 +1,49 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Organization-wide Reporting & Analytics</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Analytics</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Pending cases</div><div class="h4 mb-0">{{ metrics.operations.pending_cases }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Completed cases</div><div class="h4 mb-0">{{ metrics.operations.completed_cases }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Back office queue</div><div class="h4 mb-0">{{ metrics.operations.pending_backoffice }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Active follow-up</div><div class="h4 mb-0">{{ metrics.operations.active_followup }}</div></div></div>
+</div>
+
+<div class="section-card mb-3">
+    <div class="section-card-title mb-2">User distribution</div>
+    <div class="row g-2">
+        {% for role, count in metrics.users.items %}
+        <div class="col-md-2"><div class="border rounded p-2 text-center"><div class="small text-muted">{{ role }}</div><div class="fw-bold">{{ count }}</div></div></div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="section-card mb-3">
+    <div class="section-card-title mb-2">Leave workflow stages</div>
+    <ul class="mb-0">
+        {% for stage, count in metrics.leave_workflow.items %}
+        <li>{{ stage }}: <strong>{{ count }}</strong></li>
+        {% empty %}<li class="text-muted">No leave requests yet.</li>{% endfor %}
+    </ul>
+</div>
+
+<div class="section-card portal-help-banner">
+    <p class="mb-0">
+        Awards:
+        {% if metrics.awards.employee_of_month %}
+        Employee of Month — {{ metrics.awards.employee_of_month.winner_user.get_username }}
+        {% else %}Employee of Month — not set{% endif %}
+        ·
+        {% if metrics.awards.branch_of_month %}
+        Branch of Month — {{ metrics.awards.branch_of_month.winner_branch.name }}
+        {% else %}Branch of Month — not set{% endif %}
+    </p>
+</div>

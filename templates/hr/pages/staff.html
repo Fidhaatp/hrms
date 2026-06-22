@@ -1,0 +1,64 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Staff Profiles</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Staff</span>
+        </div>
+    </div>
+    <div>
+        <button class="topbar-quick-add" type="button" onclick="showAddStaffModal()">
+            <i class="bi bi-person-plus-fill"></i> Add Staff
+        </button>
+    </div>
+</div>
+
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} mb-2 py-2 px-3" style="font-size:13px" role="alert">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-card">
+    <div class="filter-bar">
+        <input type="text" class="filter-input" placeholder="Search staff…" id="staffSearch" />
+        <select class="filter-select" id="staffStatusFilter">
+            <option value="all" selected>All</option>
+            <option value="active">Active only</option>
+            <option value="deactivated">Deactivated only</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table id="staffTable" class="table table-hover" style="width:100%;font-size:13px">
+            <thead>
+                <tr>
+                    <th>Staff</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Branch</th>
+                    <th>Mobile</th>
+                    <th>Join date</th>
+                    <th>Date of birth</th>
+                    <th>Status</th>
+                    <th style="width:130px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% include "hr/includes/staff_rows.html" %}
+            </tbody>
+        </table>
+        {% if not staff_members %}
+        <p class="text-center text-muted py-4 mb-0">No staff profiles yet. Click <strong>Add Staff</strong> to create one.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% include "hr/includes/staff_modal.html" %}
+{% include "hr/includes/team_view_modal.html" with modal_id="viewStaffModal" title="Staff Profile" show_salary=True %}
+{% if edit_staff %}{% url 'hr:staff_edit' edit_staff.pk as staff_edit_url %}{% endif %}
+{% include "hr/includes/team_edit_modal.html" with modal_id="editStaffModal" form_id="editStaffForm" title="Edit Staff Profile" edit_member=edit_staff edit_form=staff_edit_form edit_url=staff_edit_url|default:"#" show_dob=True show_salary=True username_display_id="edit_staff_username" branch_field_id="edit_staff_branch" picture_field_id="edit_staff_picture" email_field_id="edit_staff_email" phone_field_id="edit_staff_phone" join_field_id="edit_staff_join" dob_field_id="edit_staff_dob" pass1_field_id="edit_staff_pass1" pass2_field_id="edit_staff_pass2" basic_salary_field_id="edit_staff_basic_salary" other_salary_field_id="edit_staff_other_salary" total_salary_field_id="edit_staff_total_salary" %}
+{% include "hr/includes/branch_status_form.html" %}

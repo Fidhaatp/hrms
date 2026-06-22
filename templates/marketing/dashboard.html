@@ -1,0 +1,30 @@
+<div class="dashboard-page portal-dashboard">
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Marketing Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Marketing overview</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-md-6 d-flex">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="stat-label">Active campaigns</div>
+                <div class="stat-value">{{ metrics.active_campaigns }}</div>
+                <div class="stat-sub">Announcements live</div>
+            </div>
+        </div>
+        <div class="col-md-6 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="stat-label">Leads this month</div>
+                <div class="stat-value">{{ metrics.leads_this_month }}</div>
+                <div class="stat-sub">Organization pipeline</div>
+            </div>
+        </div>
+    </div>
+</div>

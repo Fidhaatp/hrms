@@ -1,0 +1,79 @@
+{% extends "core/account/base_auth.html" %}
+{% load static %}
+
+{% block auth_title %}HR Registration{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card auth-card--wide">
+    <div class="auth-brand">
+        <img src="{% static 'hr/images/takhlees-logo.png' %}" alt="TAKHLEES" class="auth-brand-logo" />
+        <span class="hr-reg-badge"><i class="bi bi-person-badge-fill"></i> HR Portal</span>
+        <h1>HR Registration</h1>
+        <p>Create your human resources account</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <ul class="auth-error-list">
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="post" class="auth-form" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label" for="id_profile_picture">Profile picture</label>
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}<div class="text-danger small mt-1">{{ form.profile_picture.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="id_username">Username *</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="id_phone">Phone *</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="auth-grid-2 mb-3">
+            <div>
+                <label class="form-label" for="id_join_date">Join date *</label>
+                {{ form.join_date }}
+                {% if form.join_date.errors %}<div class="text-danger small mt-1">{{ form.join_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="id_date_of_birth">Date of birth *</label>
+                {{ form.date_of_birth }}
+                {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="auth-grid-2 mb-4">
+            <div>
+                <label class="form-label" for="id_password1">Password *</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="id_password2">Confirm password *</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <button type="submit" class="auth-btn">Create HR account</button>
+    </form>
+
+    <div class="auth-links">
+        <a href="{% url 'core:register_portal' %}">← Other registration types</a>
+        &nbsp;·&nbsp;
+        <a href="{% url 'core:login' %}">Sign in</a>
+    </div>
+</div>
+{% endblock %}

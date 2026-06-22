@@ -1,0 +1,179 @@
+{% load profile_tags %}
+
+<div class="portal-profile-page">
+    <div class="page-header mb-0">
+        <div class="page-header-left">
+            <div class="page-title">My Profile</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i>
+                <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Profile</span>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="portal-profile-alerts">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} mb-2 py-2 px-3" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if has_role_profile %}
+    <div class="portal-profile-hero section-card">
+        <div class="portal-profile-hero__cover"></div>
+        <div class="portal-profile-hero__content">
+            <div class="portal-profile-hero__left">
+                <div class="portal-profile-avatar-ring" id="profileAvatarPreview">
+                    {% profile_avatar request.user size="xl" %}
+                </div>
+                {% if profile_picture_form %}
+                <form method="post" action="{% url profile_photo_url_name %}" enctype="multipart/form-data" class="portal-profile-upload-form" id="profilePhotoForm">
+                    {% csrf_token %}
+                    <input type="file" name="profile_picture" id="profilePictureInput" accept="image/*" class="portal-profile-upload-input" />
+                    <label for="profilePictureInput" class="portal-profile-upload-label">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Change photo</span>
+                    </label>
+                    <button type="submit" class="portal-profile-upload-save" id="profilePhotoSave" hidden>
+                        <i class="bi bi-check2"></i> Save photo
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            <div class="portal-profile-hero__info">
+                <span class="portal-profile-role-pill"><i class="bi bi-shield-check"></i> {{ profile_details.role_label }}</span>
+                <h1 class="portal-profile-hero__name">{{ profile_details.display_name }}</h1>
+                <p class="portal-profile-hero__handle">@{{ profile_details.username }}</p>
+                <div class="portal-profile-hero__chips">
+                    {% if profile_details.phone and profile_details.phone != "—" %}
+                    <span class="portal-profile-chip"><i class="bi bi-telephone-fill"></i> {{ profile_details.phone }}</span>
+                    {% endif %}
+                    {% if profile_details.email %}
+                    <span class="portal-profile-chip"><i class="bi bi-envelope-fill"></i> {{ profile_details.email }}</span>
+                    {% endif %}
+                    {% if profile_details.join_date %}
+                    <span class="portal-profile-chip"><i class="bi bi-calendar-check"></i> Joined {{ profile_details.join_date|date:"M Y" }}</span>
+                    {% endif %}
+                    {% if profile_details.branch_name %}
+                    <span class="portal-profile-chip"><i class="bi bi-building"></i> {{ profile_details.branch_name }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1 w-100">
+        <div class="col-lg-4 col-md-5">
+            <div class="section-card portal-profile-side-card h-100">
+                <h3 class="portal-profile-section-title"><i class="bi bi-bar-chart-fill"></i> Account summary</h3>
+                <ul class="portal-profile-summary-list">
+                    <li>
+                        <span class="portal-profile-summary-label">Status</span>
+                        {% if profile_details.is_active %}
+                        <span class="badge-status badge-won">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-closed">Inactive</span>
+                        {% endif %}
+                    </li>
+                    {% if profile_details.created_at %}
+                    <li>
+                        <span class="portal-profile-summary-label">Member since</span>
+                        <strong>{{ profile_details.created_at|date:"d M Y" }}</strong>
+                    </li>
+                    {% endif %}
+                    {% if profile_details.updated_at %}
+                    <li>
+                        <span class="portal-profile-summary-label">Last updated</span>
+                        <strong>{{ profile_details.updated_at|date:"d M Y" }}</strong>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <span class="portal-profile-summary-label">Portal role</span>
+                        <strong>{{ profile_details.role_label }}</strong>
+                    </li>
+                    {% if profile_details.branch_name %}
+                    <li>
+                        <span class="portal-profile-summary-label">Branch</span>
+                        <strong>{{ profile_details.branch_name }}</strong>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-8 col-md-7">
+            <div class="section-card portal-profile-details-card h-100">
+                <h3 class="portal-profile-section-title"><i class="bi bi-person-vcard-fill"></i> Personal information</h3>
+                <div class="portal-profile-info-grid">
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--red"><i class="bi bi-person-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Username</span>
+                            <span class="portal-profile-info-value">{{ profile_details.username }}</span>
+                        </div>
+                    </div>
+                    {% if profile_details.email %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--green"><i class="bi bi-envelope-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Email</span>
+                            <span class="portal-profile-info-value">{{ profile_details.email }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--green"><i class="bi bi-telephone-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Mobile</span>
+                            <span class="portal-profile-info-value">{{ profile_details.phone }}</span>
+                        </div>
+                    </div>
+                    {% if profile_details.join_date %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--amber"><i class="bi bi-calendar-check-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Join date</span>
+                            <span class="portal-profile-info-value">{{ profile_details.join_date|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile_details.date_of_birth %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--red"><i class="bi bi-cake2-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Date of birth</span>
+                            <span class="portal-profile-info-value">{{ profile_details.date_of_birth|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile_details.branch_name %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--green"><i class="bi bi-building-fill"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Branch</span>
+                            <span class="portal-profile-info-value">{{ profile_details.branch_name }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile_details.created_at %}
+                    <div class="portal-profile-info-item">
+                        <div class="portal-profile-info-icon portal-profile-info-icon--muted"><i class="bi bi-clock-history"></i></div>
+                        <div>
+                            <span class="portal-profile-info-label">Account created</span>
+                            <span class="portal-profile-info-value">{{ profile_details.created_at|date:"d M Y, g:i A" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="section-card portal-profile-empty p-5 text-center">
+        <i class="bi bi-person-x portal-profile-empty-icon"></i>
+        <p class="mt-3 mb-0 text-muted">Profile details not found for this account.</p>
+    </div>
+    {% endif %}
+</div>

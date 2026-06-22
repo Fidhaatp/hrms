@@ -1,0 +1,488 @@
+<div class="service-expiry-calendar-page"
+     data-initial-year="{{ calendar_year }}"
+     data-initial-month="{{ calendar_month }}"
+     data-initial-date="{{ calendar_selected_date }}">
+    <div class="mb-4">
+        <h2 class="h5 mb-1">Service expiry calendar</h2>
+        <p class="text-muted small mb-0">Dates with a yellow dot have leads expiring that day.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="service-calendar-card">
+                <div class="service-calendar-toolbar">
+                    <div class="service-calendar-toolbar-actions">
+                        <button type="button" class="service-calendar-toolbar-btn" id="calendarPrevYear" title="Previous year">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </button>
+                        <button type="button" class="service-calendar-toolbar-btn" id="calendarPrevMonth" title="Previous month">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="service-calendar-toolbar-pickers">
+                        <select class="service-calendar-picker" id="calendarMonthSelect" aria-label="Month"></select>
+                        <select class="service-calendar-picker" id="calendarYearSelect" aria-label="Year"></select>
+                    </div>
+                    <div class="service-calendar-toolbar-actions">
+                        <button type="button" class="service-calendar-toolbar-btn" id="calendarNextMonth" title="Next month">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button type="button" class="service-calendar-toolbar-btn" id="calendarNextYear" title="Next year">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </button>
+                        <button type="button" class="service-calendar-toolbar-btn is-today-btn" id="calendarTodayBtn">Today</button>
+                    </div>
+                </div>
+                <div class="service-calendar-weekdays">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="service-calendar-grid" id="calendarGrid"></div>
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+                <span class="service-calendar-dot d-inline-block me-1" style="vertical-align: middle;"></span>
+                <span id="calendarMonthCount">{{ calendar_event_count }} service expir{{ calendar_event_count|pluralize:"y,ies" }} in {{ calendar_month_name }}</span>
+            </p>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="service-calendar-sidebar">
+                <div class="service-calendar-sidebar-header">
+                    <div class="service-calendar-sidebar-header-top">
+                        <div class="service-calendar-sidebar-date-wrap">
+                            <span class="service-calendar-sidebar-date-icon"><i class="bi bi-calendar-event"></i></span>
+                            <div>
+                                <div class="service-calendar-sidebar-weekday" id="calendarSidebarWeekday">
+                                    {% if calendar_selected_date %}—{% else %}Pick a date{% endif %}
+                                </div>
+                                <div class="service-calendar-sidebar-date" id="calendarSidebarTitleText">
+                                    {% if calendar_selected_date %}{{ calendar_selected_date }}{% else %}Select a date{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="service-calendar-sidebar-count d-none" id="calendarSidebarCount"></span>
+                    </div>
+                </div>
+                <div class="service-calendar-sidebar-body">
+                    <div id="calendarSidebarEvents">
+                        {% if calendar_selected_date %}
+                            {% if calendar_selected_events %}
+                            <div class="service-calendar-events-list">
+                                {% for event in calendar_selected_events %}
+                                <div class="service-calendar-event-card">
+                                    <div class="service-calendar-event-top">
+                                        <span class="service-calendar-event-avatar">{{ event.name|slice:":1" }}</span>
+                                        <div>
+                                            <div class="service-calendar-event-name">{{ event.name }}</div>
+                                            <div class="service-calendar-event-badges">
+                                                <span class="service-calendar-badge-id">{{ event.id }}</span>
+                                                <span class="service-calendar-badge-service">{{ event.service }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="service-calendar-event-meta">
+                                        {% if event.phone %}
+                                        <div class="service-calendar-meta-row">
+                                            <span class="service-calendar-meta-icon"><i class="bi bi-telephone"></i></span>
+                                            <span class="service-calendar-meta-label">Phone</span>
+                                            <span class="service-calendar-meta-value">{{ event.phone }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if event.branch %}
+                                        <div class="service-calendar-meta-row">
+                                            <span class="service-calendar-meta-icon"><i class="bi bi-building"></i></span>
+                                            <span class="service-calendar-meta-label">Branch</span>
+                                            <span class="service-calendar-meta-value">{{ event.branch }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if event.staff %}
+                                        <div class="service-calendar-meta-row">
+                                            <span class="service-calendar-meta-icon"><i class="bi bi-person-badge"></i></span>
+                                            <span class="service-calendar-meta-label">Staff</span>
+                                            <span class="service-calendar-meta-value">{{ event.staff }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="service-calendar-empty">
+                                <i class="bi bi-calendar-x"></i>
+                                <p>No expiring leads on this date.</p>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="service-calendar-empty">
+                                <i class="bi bi-hand-index-thumb"></i>
+                                <p>Click a date on the calendar to see expiring leads.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="calendarEventsData" type="application/json">{{ calendar_all_events_json|safe }}</script>
+<script>
+(function () {
+    const page = document.querySelector('.service-expiry-calendar-page');
+    if (!page) return;
+
+    let eventsByDate = {};
+    try {
+        eventsByDate = JSON.parse(document.getElementById('calendarEventsData').textContent || '{}');
+    } catch (e) {
+        eventsByDate = {};
+    }
+
+    const gridEl = document.getElementById('calendarGrid');
+    const monthCountEl = document.getElementById('calendarMonthCount');
+    const monthSelectEl = document.getElementById('calendarMonthSelect');
+    const yearSelectEl = document.getElementById('calendarYearSelect');
+    const weekdayEl = document.getElementById('calendarSidebarWeekday');
+    const titleEl = document.getElementById('calendarSidebarTitleText');
+    const countEl = document.getElementById('calendarSidebarCount');
+    const eventsEl = document.getElementById('calendarSidebarEvents');
+
+    let viewYear = Number(page.dataset.initialYear);
+    let viewMonth = Number(page.dataset.initialMonth);
+    let selectedDate = page.dataset.initialDate || '';
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function pad2(n) {
+        return String(n).padStart(2, '0');
+    }
+
+    function toIso(y, m, d) {
+        return `${y}-${pad2(m)}-${pad2(d)}`;
+    }
+
+    function todayParts() {
+        const t = new Date();
+        return { y: t.getFullYear(), m: t.getMonth() + 1, d: t.getDate(), iso: toIso(t.getFullYear(), t.getMonth() + 1, t.getDate()) };
+    }
+
+    function parseDate(iso) {
+        const parts = iso.split('-');
+        if (parts.length !== 3) return null;
+        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    }
+
+    function formatDateParts(iso) {
+        const d = parseDate(iso);
+        if (!d) return { weekday: '—', date: iso };
+        return {
+            weekday: d.toLocaleDateString('en-GB', { weekday: 'long' }),
+            date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        };
+    }
+
+    function monthName(y, m) {
+        return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+
+    const MONTH_NAMES = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+
+    function getYearOptions() {
+        const years = new Set();
+        const current = new Date().getFullYear();
+        for (let y = current - 10; y <= current + 10; y += 1) {
+            years.add(y);
+        }
+        years.add(viewYear);
+        Object.keys(eventsByDate).forEach((iso) => years.add(Number(iso.split('-')[0])));
+        return [...years].sort((a, b) => a - b);
+    }
+
+    function populatePickers() {
+        monthSelectEl.innerHTML = MONTH_NAMES.map((name, index) => {
+            const value = index + 1;
+            const selected = value === viewMonth ? ' selected' : '';
+            return `<option value="${value}"${selected}>${name}</option>`;
+        }).join('');
+
+        yearSelectEl.innerHTML = getYearOptions().map((y) => {
+            const selected = y === viewYear ? ' selected' : '';
+            return `<option value="${y}"${selected}>${y}</option>`;
+        }).join('');
+    }
+
+    function syncPickers() {
+        monthSelectEl.value = String(viewMonth);
+        if (!yearSelectEl.querySelector(`option[value="${viewYear}"]`)) {
+            const option = document.createElement('option');
+            option.value = String(viewYear);
+            option.textContent = String(viewYear);
+            yearSelectEl.appendChild(option);
+            [...yearSelectEl.options]
+                .sort((a, b) => Number(a.value) - Number(b.value))
+                .forEach((opt) => yearSelectEl.appendChild(opt));
+        }
+        yearSelectEl.value = String(viewYear);
+    }
+
+    function clampMonth(y, m) {
+        if (m < 1) return { y: y - 1, m: 12 };
+        if (m > 12) return { y: y + 1, m: 1 };
+        return { y, m };
+    }
+
+    function monthEventCount(y, m) {
+        const prefix = `${y}-${pad2(m)}-`;
+        return Object.entries(eventsByDate).reduce((sum, [iso, events]) => (
+            iso.startsWith(prefix) ? sum + events.length : sum
+        ), 0);
+    }
+
+    function buildMonthCells(y, m) {
+        const first = new Date(y, m - 1, 1);
+        const startDay = first.getDay();
+        const daysInMonth = new Date(y, m, 0).getDate();
+        const prev = clampMonth(y, m - 1);
+        const daysInPrev = new Date(prev.y, prev.m, 0).getDate();
+        const cells = [];
+
+        for (let i = startDay - 1; i >= 0; i -= 1) {
+            const d = daysInPrev - i;
+            cells.push({ y: prev.y, m: prev.m, d, inMonth: false });
+        }
+        for (let d = 1; d <= daysInMonth; d += 1) {
+            cells.push({ y, m, d, inMonth: true });
+        }
+        const next = clampMonth(y, m + 1);
+        let d = 1;
+        while (cells.length % 7 !== 0) {
+            cells.push({ y: next.y, m: next.m, d, inMonth: false });
+            d += 1;
+        }
+        while (cells.length < 42) {
+            cells.push({ y: next.y, m: next.m, d, inMonth: false });
+            d += 1;
+        }
+        return cells;
+    }
+
+    function initialFromName(name) {
+        const trimmed = String(name || '').trim();
+        return trimmed ? trimmed.charAt(0).toUpperCase() : '?';
+    }
+
+    function renderMetaRow(icon, label, value) {
+        if (!value) return '';
+        return `
+            <div class="service-calendar-meta-row">
+                <span class="service-calendar-meta-icon"><i class="bi bi-${icon}"></i></span>
+                <span class="service-calendar-meta-label">${escapeHtml(label)}</span>
+                <span class="service-calendar-meta-value">${escapeHtml(value)}</span>
+            </div>
+        `;
+    }
+
+    function renderEventCard(event) {
+        const meta = [
+            renderMetaRow('telephone', 'Phone', event.phone),
+            renderMetaRow('building', 'Branch', event.branch),
+            renderMetaRow('person-badge', 'Staff', event.staff),
+        ].join('');
+
+        return `
+            <div class="service-calendar-event-card">
+                <div class="service-calendar-event-top">
+                    <span class="service-calendar-event-avatar">${escapeHtml(initialFromName(event.name))}</span>
+                    <div>
+                        <div class="service-calendar-event-name">${escapeHtml(event.name)}</div>
+                        <div class="service-calendar-event-badges">
+                            <span class="service-calendar-badge-id">${escapeHtml(event.id)}</span>
+                            <span class="service-calendar-badge-service">${escapeHtml(event.service)}</span>
+                        </div>
+                    </div>
+                </div>
+                ${meta ? `<div class="service-calendar-event-meta">${meta}</div>` : ''}
+            </div>
+        `;
+    }
+
+    function updateCount(count) {
+        if (!countEl) return;
+        if (!count) {
+            countEl.classList.add('d-none');
+            countEl.innerHTML = '';
+            return;
+        }
+        countEl.classList.remove('d-none');
+        countEl.innerHTML = `<i class="bi bi-exclamation-circle"></i>${count} expiring`;
+    }
+
+    function renderSidebar(iso) {
+        if (!iso) {
+            weekdayEl.textContent = 'Pick a date';
+            titleEl.textContent = 'Select a date';
+            updateCount(0);
+            eventsEl.innerHTML = `
+                <div class="service-calendar-empty">
+                    <i class="bi bi-hand-index-thumb"></i>
+                    <p>Click a date on the calendar to see expiring leads.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const events = eventsByDate[iso] || [];
+        const parts = formatDateParts(iso);
+        weekdayEl.textContent = parts.weekday;
+        titleEl.textContent = parts.date;
+        updateCount(events.length);
+
+        if (!events.length) {
+            eventsEl.innerHTML = `
+                <div class="service-calendar-empty">
+                    <i class="bi bi-calendar-x"></i>
+                    <p>No expiring leads on this date.</p>
+                </div>
+            `;
+            return;
+        }
+
+        eventsEl.innerHTML = `
+            <div class="service-calendar-events-list">
+                ${events.map(renderEventCard).join('')}
+            </div>
+        `;
+    }
+
+    function updateUrl() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('year', viewYear);
+        url.searchParams.set('month', viewMonth);
+        if (selectedDate) {
+            url.searchParams.set('date', selectedDate);
+        } else {
+            url.searchParams.delete('date');
+        }
+        window.history.replaceState(null, '', url.toString());
+    }
+
+    function renderGrid() {
+        const today = todayParts();
+        const cells = buildMonthCells(viewYear, viewMonth);
+        syncPickers();
+
+        const count = monthEventCount(viewYear, viewMonth);
+        const label = monthName(viewYear, viewMonth);
+        monthCountEl.textContent = `${count} service expir${count === 1 ? 'y' : 'ies'} in ${label}`;
+
+        gridEl.innerHTML = cells.map((cell) => {
+            const iso = toIso(cell.y, cell.m, cell.d);
+            const hasEvents = Boolean(eventsByDate[iso] && eventsByDate[iso].length);
+            const isToday = iso === today.iso;
+            const isSelected = iso === selectedDate;
+            const classes = [
+                'service-calendar-day',
+                cell.inMonth ? '' : 'is-other-month',
+                isToday ? 'is-today' : '',
+                isSelected ? 'is-selected' : '',
+                hasEvents ? 'has-events' : '',
+            ].filter(Boolean).join(' ');
+
+            const dot = hasEvents
+                ? `<span class="service-calendar-dot" title="${eventsByDate[iso].length} expiring lead${eventsByDate[iso].length === 1 ? '' : 's'}"></span>`
+                : '';
+
+            return `
+                <button type="button" class="${classes}" data-date="${iso}" data-in-month="${cell.inMonth ? '1' : '0'}">
+                    <span class="service-calendar-day-num">${cell.d}</span>
+                    ${dot}
+                </button>
+            `;
+        }).join('');
+
+        gridEl.querySelectorAll('.service-calendar-day').forEach((button) => {
+            button.addEventListener('click', () => {
+                const iso = button.dataset.date;
+                if (!iso) return;
+
+                if (button.dataset.inMonth !== '1') {
+                    const [y, m] = iso.split('-').map(Number);
+                    viewYear = y;
+                    viewMonth = m;
+                    selectedDate = iso;
+                    renderGrid();
+                    renderSidebar(iso);
+                    updateUrl();
+                    return;
+                }
+
+                selectedDate = iso;
+                gridEl.querySelectorAll('.service-calendar-day').forEach((btn) => btn.classList.remove('is-selected'));
+                button.classList.add('is-selected');
+                renderSidebar(iso);
+                updateUrl();
+            });
+        });
+    }
+
+    function goToMonth(y, m, selectIso) {
+        const clamped = clampMonth(y, m);
+        viewYear = clamped.y;
+        viewMonth = clamped.m;
+        if (selectIso !== undefined) {
+            selectedDate = selectIso;
+        }
+        renderGrid();
+        if (selectedDate) {
+            renderSidebar(selectedDate);
+        }
+        updateUrl();
+    }
+
+    document.getElementById('calendarPrevYear').addEventListener('click', () => {
+        goToMonth(viewYear - 1, viewMonth);
+    });
+
+    document.getElementById('calendarPrevMonth').addEventListener('click', () => {
+        goToMonth(viewYear, viewMonth - 1);
+    });
+
+    document.getElementById('calendarNextMonth').addEventListener('click', () => {
+        goToMonth(viewYear, viewMonth + 1);
+    });
+
+    document.getElementById('calendarNextYear').addEventListener('click', () => {
+        goToMonth(viewYear + 1, viewMonth);
+    });
+
+    monthSelectEl.addEventListener('change', () => {
+        goToMonth(viewYear, Number(monthSelectEl.value));
+    });
+
+    yearSelectEl.addEventListener('change', () => {
+        goToMonth(Number(yearSelectEl.value), viewMonth);
+    });
+
+    document.getElementById('calendarTodayBtn').addEventListener('click', () => {
+        const t = todayParts();
+        goToMonth(t.y, t.m, t.iso);
+    });
+
+    populatePickers();
+    renderGrid();
+    if (selectedDate) {
+        const parts = formatDateParts(selectedDate);
+        weekdayEl.textContent = parts.weekday;
+        titleEl.textContent = parts.date;
+        updateCount((eventsByDate[selectedDate] || []).length);
+    }
+})();
+</script>

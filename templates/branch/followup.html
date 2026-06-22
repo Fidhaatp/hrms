@@ -1,0 +1,55 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Follow-up team</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Follow-up</span>
+        </div>
+    </div>
+</div>
+
+{% if branch %}
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-telephone-fill me-2 text-success"></i>Follow-up staff linked to <strong>{{ branch.name }}</strong>. They review staff leads and send approved leads to back office.</p>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 dashboard-table" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Phone</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in followup_members %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-xs lead-avatar">{{ member.initials }}</div>
+                            <span class="fw-semibold">{{ member.display_name }}</span>
+                        </div>
+                    </td>
+                    <td class="small">@{{ member.user.get_username }}</td>
+                    <td class="small">{{ member.phone|default:"—" }}</td>
+                    <td class="text-muted small">{{ member.join_date|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">No follow-up team members linked to this branch.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="section-card">
+    <p class="text-center text-muted py-4 mb-0">Branch profile not found.</p>
+</div>
+{% endif %}

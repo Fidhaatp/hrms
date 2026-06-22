@@ -1,0 +1,49 @@
+{% load profile_tags %}
+{% for member in team_members %}
+<tr data-status="{% if member.is_active %}active{% else %}deactivated{% endif %}" class="{% if not member.is_active %}table-secondary{% endif %}">
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            {% profile_avatar member.user size="xs" extra_class="hr-user-avatar" %}
+            <span class="fw-semibold">{{ member.display_name }}</span>
+        </div>
+    </td>
+    <td><span class="text-muted">@{{ member.username }}</span></td>
+    <td>{{ member.email }}</td>
+    <td class="fw-semibold small">{{ member.branch.name|default:"—" }}</td>
+    <td>
+        {% if member.is_backoffice_head %}
+        <span class="badge-status badge-won">Head</span>
+        {% else %}
+        <span class="badge-status badge-pending">Team</span>
+        {% endif %}
+    </td>
+    <td>{{ member.phone }}</td>
+    <td class="text-muted small">{{ member.join_date|date:"d M Y" }}</td>
+    <td class="text-muted small">{{ member.date_of_birth|date:"d M Y" }}</td>
+    <td>
+        {% if member.is_active %}
+        <span class="badge-status badge-won">Active</span>
+        {% else %}
+        <span class="badge-status badge-closed">Deactivated</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="d-flex gap-1 flex-wrap">
+            {% include "hr/includes/team_row_actions.html" with view_modal_id="viewBackofficeModal" edit_modal_id="editBackofficeModal" form_id="editBackofficeForm" edit_url_name="hr:backoffice_edit" show_dob=True show_backoffice_head=True username_display_id="edit_backoffice_username" branch_field_id="edit_backoffice_branch" email_field_id="edit_backoffice_email" phone_field_id="edit_backoffice_phone" join_field_id="edit_backoffice_join" dob_field_id="edit_backoffice_dob" head_field_id="edit_backoffice_is_head" %}
+            {% if member.is_active %}
+            <button type="button" class="action-btn backoffice-deactivate-btn" title="Deactivate"
+                data-name="{{ member.display_name|escapejs }}"
+                data-url="{% url 'hr:backoffice_deactivate' member.pk %}">
+                <i class="bi bi-pause-circle-fill"></i>
+            </button>
+            {% else %}
+            <button type="button" class="action-btn backoffice-reactivate-btn btn-status-activate" title="Activate"
+                data-name="{{ member.display_name|escapejs }}"
+                data-url="{% url 'hr:backoffice_reactivate' member.pk %}">
+                <i class="bi bi-play-circle-fill"></i>
+            </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}

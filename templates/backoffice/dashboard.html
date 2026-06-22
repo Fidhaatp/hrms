@@ -1,0 +1,297 @@
+<div class="dashboard-page portal-dashboard backoffice-dashboard-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Back Office Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i>
+                <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+    </div>
+
+    {% if is_backoffice_head %}
+    <div class="portal-dashboard-hero portal-dashboard-hero--brand mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-shield-check me-1"></i> Back office head</div>
+                <h2 class="portal-dashboard-hero__title">Hello, {{ portal_display_name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">Verify follow-up approved leads from every branch, then hand off to your team for procedure review.</p>
+            </div>
+            {% if backoffice_profile %}
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Signed in as</div>
+                    <div class="fw-semibold">@{{ backoffice_profile.username }}</div>
+                    <div class="small opacity-75 mt-1">Since {{ backoffice_profile.join_date|date:"d M Y" }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="portal-dashboard-hero portal-dashboard-hero--brand mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-shield-check me-1"></i> Back office team</div>
+                <h2 class="portal-dashboard-hero__title">Hello, {{ portal_display_name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">Review procedure steps from follow-up and track leads until every service step is approved.</p>
+            </div>
+            {% if backoffice_profile %}
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Signed in as</div>
+                    <div class="fw-semibold">@{{ backoffice_profile.username }}</div>
+                    <div class="small opacity-75 mt-1">Since {{ backoffice_profile.join_date|date:"d M Y" }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <p class="dashboard-section-label">Quick actions</p>
+    <div class="row g-3 mb-4">
+        {% if is_backoffice_head %}
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:pending_verifications' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--amber"><i class="bi bi-hourglass-split"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Pending verification</span>
+                    <span class="portal-action-card__desc">Follow-up approved leads — all branches</span>
+                </span>
+                <span class="portal-action-card__count">{{ pending_leads_count }}</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:all_leads' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--green"><i class="bi bi-people-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">All approved leads</span>
+                    <span class="portal-action-card__desc">Every branch in one list</span>
+                </span>
+                <span class="portal-action-card__count">{{ all_approved_leads_count }}</span>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:procedure_reviews' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--amber"><i class="bi bi-list-check"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Procedure review</span>
+                    <span class="portal-action-card__desc">Approve or reject follow-up steps</span>
+                </span>
+                <span class="portal-action-card__count">{{ pending_procedure_count }}</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:pending_leads' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--blue"><i class="bi bi-hourglass-split"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Pending leads</span>
+                    <span class="portal-action-card__desc">Procedures still in progress</span>
+                </span>
+                <span class="portal-action-card__count">{{ pending_in_progress_count }}</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:all_leads' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--green"><i class="bi bi-check-circle-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Completed leads</span>
+                    <span class="portal-action-card__desc">All procedures approved</span>
+                </span>
+                <span class="portal-action-card__count">{{ all_approved_leads_count }}</span>
+            </a>
+        </div>
+        {% endif %}
+        <div class="col-md-6 col-lg-4 d-flex">
+            <a href="{% url 'backoffice:cases' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--slate"><i class="bi bi-inbox-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Active cases</span>
+                    <span class="portal-action-card__desc">Post-sale processing queue</span>
+                </span>
+                <span class="portal-action-card__count">{{ case_metrics.in_progress }}</span>
+            </a>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Operations overview</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'backoffice:cases' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-inbox-fill"></i></div></div>
+                <div class="stat-label">Active cases</div>
+                <div class="stat-value">{{ case_metrics.in_progress }}</div>
+                <div class="stat-sub">Post-sale processing</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-file-earmark-check-fill"></i></div></div>
+                <div class="stat-label">Completed cases</div>
+                <div class="stat-value">{{ case_metrics.completed }}</div>
+                <div class="stat-sub">Fully processed</div>
+            </div>
+        </div>
+        {% if is_backoffice_head %}
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'backoffice:pending_verifications' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div></div>
+                <div class="stat-label">Pending verification</div>
+                <div class="stat-value">{{ pending_leads_count }}</div>
+                <div class="stat-sub">All branches</div>
+            </div>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'backoffice:procedure_reviews' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-list-check"></i></div></div>
+                <div class="stat-label">Procedure review</div>
+                <div class="stat-value">{{ pending_procedure_count }}</div>
+                <div class="stat-sub">Steps to approve</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'backoffice:pending_leads' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-hourglass-split"></i></div></div>
+                <div class="stat-label">Pending leads</div>
+                <div class="stat-value">{{ pending_in_progress_count }}</div>
+                <div class="stat-sub">In progress</div>
+            </div>
+            </a>
+        </div>
+        {% endif %}
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'backoffice:all_leads' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-people-fill"></i></div></div>
+                <div class="stat-label">{% if is_backoffice_head %}All approved leads{% else %}Completed leads{% endif %}</div>
+                <div class="stat-value">{{ all_approved_leads_count }}</div>
+                <div class="stat-sub">{% if is_backoffice_head %}Every branch{% else %}Procedures done{% endif %}</div>
+            </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        {% if is_backoffice_head %}
+        <div class="col-lg-8">
+            <div class="section-card dashboard-panel">
+                <div class="section-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="section-card-title">Pending verification</div>
+                        <div class="section-card-subtitle">Follow-up approved — all branches</div>
+                    </div>
+                    <a href="{% url 'backoffice:pending_verifications' %}" class="small text-decoration-none">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Lead</th>
+                                <th>Branch</th>
+                                <th>Service</th>
+                                <th>Approved</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_pending_leads %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold">{{ lead.name }}</span>
+                                    <div class="text-muted small">{{ lead.display_id }}</div>
+                                </td>
+                                <td class="small">{{ lead.branch.name|default:"—" }}</td>
+                                <td class="small text-muted">{{ lead.service.name|default:"—" }}</td>
+                                <td class="text-muted small">{{ lead.sent_to_backoffice_at|date:"d M Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-muted small text-center py-3">No follow-up approved leads waiting.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-lg-8">
+            <div class="section-card dashboard-panel">
+                <div class="section-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="section-card-title">Procedure review queue</div>
+                        <div class="section-card-subtitle">Head-approved leads — pending procedure steps</div>
+                    </div>
+                    <a href="{% url 'backoffice:procedure_reviews' %}" class="small text-decoration-none">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Lead</th>
+                                <th>Branch</th>
+                                <th>Service</th>
+                                <th>Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_procedure_leads %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold">{{ lead.name }}</span>
+                                    <div class="text-muted small">{{ lead.display_id }}</div>
+                                </td>
+                                <td class="small">{{ lead.branch.name|default:"—" }}</td>
+                                <td class="small text-muted">{{ lead.service.name|default:"—" }}</td>
+                                <td class="text-muted small">{{ lead.updated_at|date:"d M Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-muted small text-center py-3">No procedure steps waiting for review.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-lg-4">
+            <div class="section-card dashboard-panel h-100">
+                <div class="section-card-header">
+                    <div class="section-card-title">Recent cases</div>
+                    <div class="section-card-subtitle">Latest post-sale work</div>
+                </div>
+                <div class="p-0">
+                    {% for case in recent_cases|slice:":5" %}
+                    <div class="bo-recent-case-row">
+                        <div>
+                            <div class="fw-semibold small">{{ case.client_name }}</div>
+                            <div class="text-muted" style="font-size:11px">{{ case.case_ref }} · {{ case.branch.name|default:"—" }}</div>
+                        </div>
+                        <span class="badge-status badge-active">{{ case.get_status_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small px-3 py-3 mb-0">No cases yet.</p>
+                    {% endfor %}
+                    <div class="px-3 pb-3">
+                        <a href="{% url 'backoffice:cases' %}" class="small text-decoration-none">View all cases →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,19 @@
+<div class="col-12">
+    <div class="small text-muted fw-semibold mt-1 mb-0">Salary details</div>
+</div>
+<div class="col-md-4">
+    <label class="form-label branch-form-label" for="{{ form.basic_salary.id_for_label }}">Basic salary *</label>
+    {{ form.basic_salary }}
+    {% if form.basic_salary.errors %}<div class="text-danger small mt-1">{{ form.basic_salary.errors.0 }}</div>{% endif %}
+</div>
+<div class="col-md-4">
+    <label class="form-label branch-form-label" for="{{ form.other_salary.id_for_label }}">Other salary *</label>
+    {{ form.other_salary }}
+    {% if form.other_salary.errors %}<div class="text-danger small mt-1">{{ form.other_salary.errors.0 }}</div>{% endif %}
+</div>
+<div class="col-md-4">
+    <label class="form-label branch-form-label" for="{{ form.total_salary.id_for_label }}">Total salary *</label>
+    {{ form.total_salary }}
+    {% if form.total_salary.errors %}<div class="text-danger small mt-1">{{ form.total_salary.errors.0 }}</div>{% endif %}
+    <div class="form-text small">Calculated automatically from basic + other.</div>
+</div>

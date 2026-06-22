@@ -1,0 +1,43 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Monthly targets</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Targets</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-bullseye me-2 text-success"></i>Your branch manager sets the monthly target and splits it per staff. Below is your share broken into <strong>monthly</strong>, <strong>weekly</strong>, and <strong>daily</strong> pace.</p>
+</div>
+
+<div class="section-card mb-3 p-3 p-md-4">
+    {% include "portal/includes/target_breakdown_panel.html" with target_breakdown=target_breakdown show_track_note=True %}
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="stat-card card-emerald w-100 h-100">
+            <div class="stat-label">Incentives</div>
+            <div class="stat-value">{{ metrics.incentive_total }}</div>
+            <div class="stat-sub">Earned this month</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card-cyan w-100 h-100">
+            <div class="stat-label">Days left</div>
+            <div class="stat-value">{{ target_breakdown.days_remaining }}</div>
+            <div class="stat-sub">In {{ target_breakdown.period_label }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card card-amber w-100 h-100">
+            <div class="stat-label">Needed per day</div>
+            <div class="stat-value">{{ target_breakdown.daily_needed }}</div>
+            <div class="stat-sub">To hit monthly goal</div>
+        </div>
+    </div>
+</div>

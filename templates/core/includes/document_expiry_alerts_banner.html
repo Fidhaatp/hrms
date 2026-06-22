@@ -1,0 +1,68 @@
+<div class="section-card document-expiry-alerts mb-4">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+        <div>
+            <div class="section-card-title mb-1">
+                <i class="bi bi-shield-exclamation text-warning me-1"></i>
+                Team document compliance
+            </div>
+            <div class="section-card-subtitle">
+                {% if document_expiry_expired_count and document_expiry_soon_count %}
+                {{ document_expiry_expired_count }} expired · {{ document_expiry_soon_count }} expiring within {{ document_expiry_alert_days|default:7 }} days
+                {% elif document_expiry_expired_count %}
+                {{ document_expiry_expired_count }} document{{ document_expiry_expired_count|pluralize }} already expired
+                {% else %}
+                {{ document_expiry_soon_count }} document{{ document_expiry_soon_count|pluralize }} expiring within {{ document_expiry_alert_days|default:7 }} days
+                {% endif %}
+            </div>
+        </div>
+        <span class="badge-status badge-pending">{{ document_expiry_alert_count }} alert{{ document_expiry_alert_count|pluralize }}</span>
+    </div>
+
+    <div class="row g-3">
+        {% if document_expiry_expired_alerts %}
+        <div class="col-lg-{% if document_expiry_soon_alerts %}6{% else %}12{% endif %}">
+            <div class="document-expiry-panel document-expiry-panel--expired h-100">
+                <div class="document-expiry-panel__head">
+                    <span class="document-expiry-panel__title"><i class="bi bi-x-octagon-fill"></i> Expired</span>
+                    <span class="document-expiry-panel__count">{{ document_expiry_expired_count }}</span>
+                </div>
+                <div class="document-expiry-alerts-list">
+                    {% for alert in document_expiry_expired_alerts %}
+                    <div class="document-expiry-alert-item document-expiry-alert-item--expired">
+                        <div class="document-expiry-alert-icon">
+                            <i class="bi bi-x-octagon-fill"></i>
+                        </div>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="document-expiry-alert-message">{{ alert.message }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if document_expiry_soon_alerts %}
+        <div class="col-lg-{% if document_expiry_expired_alerts %}6{% else %}12{% endif %}">
+            <div class="document-expiry-panel document-expiry-panel--soon h-100">
+                <div class="document-expiry-panel__head">
+                    <span class="document-expiry-panel__title"><i class="bi bi-calendar-event"></i> Expiring soon</span>
+                    <span class="document-expiry-panel__count">{{ document_expiry_soon_count }}</span>
+                </div>
+                <div class="document-expiry-alerts-list">
+                    {% for alert in document_expiry_soon_alerts %}
+                    <div class="document-expiry-alert-item document-expiry-alert-item--soon">
+                        <div class="document-expiry-alert-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="document-expiry-alert-message">{{ alert.message }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,19 @@
+<div class="portal-dashboard-hero portal-dashboard-hero--{{ hero_variant|default:'green' }} mb-4">
+    <div class="portal-dashboard-hero__glow"></div>
+    <div class="row g-3 align-items-center position-relative">
+        <div class="col-lg-{% if hero_side_html %}8{% else %}12{% endif %}">
+            {% if hero_badge %}
+            <div class="portal-dashboard-hero__badge">{{ hero_badge|safe }}</div>
+            {% endif %}
+            <h2 class="portal-dashboard-hero__title">{{ hero_title }}</h2>
+            {% if hero_subtitle %}
+            <p class="portal-dashboard-hero__subtitle mb-0">{{ hero_subtitle }}</p>
+            {% endif %}
+        </div>
+        {% if hero_side_html %}
+        <div class="col-lg-4">
+            <div class="portal-dashboard-hero__side">{{ hero_side_html|safe }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>

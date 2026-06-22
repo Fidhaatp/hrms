@@ -1,0 +1,51 @@
+{% load profile_tags %}
+{% for mgr in branch_managers %}
+<tr data-branch="{{ mgr.branch.name }}"
+    data-status="{% if mgr.is_active %}active{% else %}deactivated{% endif %}"
+    class="{% if not mgr.is_active %}table-secondary{% endif %}">
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            {% profile_avatar mgr.user size="xs" extra_class="hr-user-avatar" %}
+            <span class="fw-semibold">{{ mgr.display_name }}</span>
+        </div>
+    </td>
+    <td><span class="text-muted">@{{ mgr.username }}</span></td>
+    <td>{{ mgr.email }}</td>
+    <td>{{ mgr.phone }}</td>
+    <td>
+        <span class="branch-mgr-tag">
+            <i class="bi bi-building"></i> {{ mgr.branch.name }}
+        </span>
+        <div class="text-muted small">{{ mgr.branch.city }}, {{ mgr.branch.state }}</div>
+        {% if mgr.branch.is_deleted %}<span class="badge-status badge-closed mt-1">Branch off</span>{% endif %}
+    </td>
+    <td class="text-muted small">{{ mgr.join_date|date:"d M Y" }}</td>
+    <td>
+        {% if mgr.is_active %}
+        <span class="badge-status badge-won">Active</span>
+        {% else %}
+        <span class="badge-status badge-closed">Deactivated</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="d-flex gap-1 flex-wrap">
+            {% include "hr/includes/branch_manager_row_actions.html" %}
+            {% if mgr.is_active and not mgr.branch.is_deleted %}
+            <button type="button" class="action-btn branch-mgr-deactivate-btn" title="Deactivate"
+                data-name="{{ mgr.display_name|escapejs }}"
+                data-url="{% url 'hr:branch_manager_deactivate' mgr.pk %}">
+                <i class="bi bi-pause-circle-fill"></i>
+            </button>
+            {% elif not mgr.is_active and not mgr.branch.is_deleted %}
+            <button type="button" class="action-btn branch-mgr-reactivate-btn btn-status-activate" title="Activate"
+                data-name="{{ mgr.display_name|escapejs }}"
+                data-url="{% url 'hr:branch_manager_reactivate' mgr.pk %}">
+                <i class="bi bi-play-circle-fill"></i>
+            </button>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}

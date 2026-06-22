@@ -1,0 +1,92 @@
+{% load lead_tags %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Procedure review</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Procedure review</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-4">
+    <p class="mb-0"><i class="bi bi-list-check me-2" style="color:#00843D"></i><strong>Back office team</strong> — head-approved leads with procedure steps submitted by follow-up. Open each lead and <strong>Approve</strong> or <strong>Reject</strong> every pending step.</p>
+</div>
+
+{% include "portal/leads/includes/lead_status_filter_bar.html" %}
+
+<div class="section-card">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Pending procedure steps ({{ procedure_leads_count }})</div>
+        <div class="section-card-subtitle">Head-approved leads from every branch</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Service</th>
+                    <th>Branch</th>
+                    <th>Staff</th>
+                    <th>Follow-up</th>
+                    <th>Procedure status</th>
+                    <th>Lead status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in procedure_leads %}
+                <tr>
+                    <td class="text-muted small">{{ lead.display_id }}</td>
+                    <td class="fw-semibold">{{ lead.name }}</td>
+                    <td class="small">{{ lead.phone }}</td>
+                    <td class="small text-muted">{{ lead.service.name|default:"—" }}</td>
+                    <td class="small fw-semibold">{{ lead.branch.name|default:"—" }}</td>
+                    <td class="text-muted small">{{ lead.created_by.get_username }}</td>
+                    <td>
+                        {% if lead.followup_status %}
+                        <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="small">{% include "portal/leads/includes/lead_procedure_status_cell.html" %}</td>
+                    <td>
+                        <span class="badge-status badge-{{ lead.procedure_lead_status_badge }}">{{ lead.procedure_lead_status_label }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <button type="button" class="action-btn lead-view-detail-btn" title="View lead data"
+                                data-detail='{{ lead|lead_detail_json }}'>
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            {% if lead.service_documents_zip %}
+                            <button type="button" class="action-btn lead-files-list-btn" title="View ZIP files"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-zip-check='{{ lead|lead_zip_check_json }}'>
+                                <i class="bi bi-file-earmark-zip-fill"></i>
+                            </button>
+                            {% endif %}
+                            <button type="button" class="action-btn backoffice-procedure-btn" title="Review procedures"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-steps='{{ lead|lead_procedure_steps_json }}'
+                                data-review-url-template="{% url 'backoffice:procedure_review' 0 %}">
+                                <i class="bi bi-list-check"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No procedure steps waiting for review.{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "portal/leads/includes/lead_detail_view_modal.html" %}
+{% include "portal/leads/includes/lead_file_preview_modal.html" %}
+{% include "portal/leads/includes/lead_files_list_modal.html" %}
+{% include "portal/leads/includes/backoffice_procedure_modal.html" %}

@@ -1,0 +1,49 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Lead Management</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">All Leads</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="action-btn" type="button" style="width:auto;padding:6px 14px;font-size:12.5px">
+            <i class="bi bi-file-earmark-excel me-1"></i> Export
+        </button>
+    </div>
+</div>
+
+<div class="section-card">
+    {% include "portal/leads/includes/lead_status_filter_bar.html" %}
+    <div class="table-responsive">
+        <table id="leadsTable" class="table table-hover" style="width:100%;font-size:13px">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Source</th>
+                    <th>Branch</th>
+                    <th>Takhlees ID</th>
+                    <th>Passport</th>
+                    <th>EID</th>
+                    <th>Staff status</th>
+                    <th>Follow-up</th>
+                    <th>Back office</th>
+                    <th>Staff</th>
+                    <th>Stage</th>
+                </tr>
+            </thead>
+            <tbody id="leadsTableBody">
+                {% include "hr/includes/lead_rows.html" %}
+            </tbody>
+        </table>
+        {% if filters_active and not leads %}
+        <p class="text-center text-muted small py-4 mb-0">No leads match your filters.</p>
+        {% endif %}
+    </div>
+</div>

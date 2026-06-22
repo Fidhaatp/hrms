@@ -1,0 +1,30 @@
+{% load team_docs_tags %}
+<button type="button" class="action-btn team-view-btn" title="View profile"
+    data-view-modal="viewBranchManagerModal"
+    data-display-name="{{ mgr.display_name|escapejs }}"
+    data-username="{{ mgr.username|escapejs }}"
+    data-email="{{ mgr.email|escapejs }}"
+    data-branch="{{ mgr.branch.name|escapejs }}"
+    data-phone="{{ mgr.phone|escapejs }}"
+    data-join-date="{{ mgr.join_date|date:'d M Y' }}"
+    data-status="{% if mgr.is_active %}Active{% else %}Deactivated{% endif %}"
+    data-show-dob="false"
+    {% include "hr/includes/team_document_view_data.html" with user=mgr.user branch=mgr.branch %}
+    <i class="bi bi-eye-fill"></i>
+</button>
+<button type="button" class="action-btn team-edit-btn" title="Edit profile"
+    data-edit-modal="editBranchManagerModal"
+    data-form-id="editBranchManagerForm"
+    data-url="{% url 'hr:branch_manager_edit' mgr.pk %}"
+    data-username="{{ mgr.username|escapejs }}"
+    data-email="{{ mgr.email|escapejs }}"
+    data-phone="{{ mgr.phone|escapejs }}"
+    data-join-date="{{ mgr.join_date|date:'Y-m-d' }}"
+    data-branch-id="{{ mgr.branch_id }}"
+    data-username-display-id="edit_mgr_username"
+    data-branch-field-id="edit_mgr_branch"
+    data-email-field-id="edit_mgr_email"
+    data-phone-field-id="edit_mgr_phone"
+    data-join-field-id="edit_mgr_join">
+    <i class="bi bi-pencil-fill"></i>
+</button>

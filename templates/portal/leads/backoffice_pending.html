@@ -1,0 +1,122 @@
+{% load lead_tags %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Pending verification</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Pending verification</span>
+        </div>
+    </div>
+</div>
+
+{% include "hr/includes/branch_status_form.html" %}
+
+<div class="section-card portal-help-banner mb-4">
+    <p class="mb-0"><i class="bi bi-check-circle me-2" style="color:#00843D"></i><strong>Back office head</strong> — follow-up approved leads waiting for your check. Review data and documents, then mark <strong>Correct</strong> or <strong>Not correct</strong>. Procedure steps are reviewed by your team after you approve the lead.</p>
+</div>
+
+{% include "portal/leads/includes/lead_status_filter_bar.html" %}
+
+<div class="section-card">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Pending verification ({{ pending_leads_count }})</div>
+        <div class="section-card-subtitle">Follow-up approved leads from every branch</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Phone</th>
+                    <th>Service</th>
+                    <th>Branch</th>
+                    <th>Staff</th>
+                    <th>Follow-up status</th>
+                    <th>Approved</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in pending_leads %}
+                <tr>
+                    <td class="text-muted small">{{ lead.display_id }}</td>
+                    <td class="fw-semibold">{{ lead.name }}</td>
+                    <td>{{ lead.get_company_display }}</td>
+                    <td class="small">{{ lead.phone }}</td>
+                    <td class="small text-muted">{{ lead.service.name|default:"—" }}</td>
+                    <td class="small fw-semibold">{{ lead.branch.name|default:"—" }}</td>
+                    <td class="text-muted small">{{ lead.created_by.get_username }}</td>
+                    <td>
+                        {% if lead.followup_status %}
+                        <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="text-muted small">{{ lead.sent_to_backoffice_at|date:"d M Y H:i" }}</td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <button type="button" class="action-btn lead-view-detail-btn" title="View lead data"
+                                data-detail='{{ lead|lead_detail_json }}'>
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            {% if lead.service_documents_zip %}
+                            <button type="button" class="action-btn lead-files-list-btn" title="View ZIP files"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-zip-check='{{ lead|lead_zip_check_json }}'>
+                                <i class="bi bi-file-earmark-zip-fill"></i>
+                            </button>
+                            {% endif %}
+                            <button type="button" class="action-btn btn-status-activate lead-verify-btn" title="Correct lead"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-url="{% url 'backoffice:lead_verify' lead.pk %}">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </button>
+                            <button type="button" class="action-btn lead-reject-btn" title="Not correct"
+                                data-name="{{ lead.name|escapejs }}"
+                                data-url="{% url 'backoffice:lead_reject' lead.pk %}">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No leads waiting for check.{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "portal/leads/includes/lead_detail_view_modal.html" %}
+{% include "portal/leads/includes/lead_file_preview_modal.html" %}
+{% include "portal/leads/includes/lead_files_list_modal.html" %}
+
+<script>
+document.querySelectorAll('.lead-verify-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Mark as correct?',
+            text: `"${btn.dataset.name}" will be marked correct.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            confirmButtonText: 'Yes, correct lead',
+        }).then((r) => { if (r.isConfirmed) submitBranchStatusForm(btn.dataset.url); });
+    });
+});
+document.querySelectorAll('.lead-reject-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Not correct?',
+            text: `Staff will see "${btn.dataset.name}" as rejected.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Yes, not correct',
+        }).then((r) => { if (r.isConfirmed) submitBranchStatusForm(btn.dataset.url); });
+    });
+});
+</script>

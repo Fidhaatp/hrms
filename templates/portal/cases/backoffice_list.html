@@ -1,0 +1,74 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Case Processing</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Case processing</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-1 small text-muted">After the sale, follow-up collects documents. <strong>Back office</strong> does the real customer work:</p>
+    <ol class="small mb-0 ps-3">
+        <li>Verify all documents</li>
+        <li>Create client application</li>
+        <li>Submit file to authority</li>
+        <li>Submit documents online</li>
+        <li>Track authority response</li>
+        <li>Update customer status</li>
+    </ol>
+</div>
+
+<div class="filter-bar mb-3 d-flex flex-wrap gap-2" style="font-size:12px">
+    <a href="{% url 'backoffice:cases' %}?status=all" class="filter-select text-decoration-none{% if status_filter == 'all' %} fw-bold{% endif %}">All ({{ status_counts.all }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=opened" class="filter-select text-decoration-none{% if status_filter == 'opened' %} fw-bold{% endif %}">Opened ({{ status_counts.opened }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=documents_verified" class="filter-select text-decoration-none{% if status_filter == 'documents_verified' %} fw-bold{% endif %}">Docs verified ({{ status_counts.documents_verified }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=application_created" class="filter-select text-decoration-none{% if status_filter == 'application_created' %} fw-bold{% endif %}">Application ({{ status_counts.application_created }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=applied_universities" class="filter-select text-decoration-none{% if status_filter == 'applied_universities' %} fw-bold{% endif %}">Submitted ({{ status_counts.applied_universities }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=portals_uploaded" class="filter-select text-decoration-none{% if status_filter == 'portals_uploaded' %} fw-bold{% endif %}">Online ({{ status_counts.portals_uploaded }})</a>
+    <a href="{% url 'backoffice:cases' %}?status=completed" class="filter-select text-decoration-none{% if status_filter == 'completed' %} fw-bold{% endif %}">Completed ({{ status_counts.completed }})</a>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Ref</th>
+                    <th>Client</th>
+                    <th>Service</th>
+                    <th>Branch</th>
+                    <th>Stage</th>
+                    <th>Docs</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr>
+                    <td class="text-muted small">{{ case.case_ref }}</td>
+                    <td class="fw-semibold">{{ case.client_name }}</td>
+                    <td>{{ case.get_service_type_display }}</td>
+                    <td class="small">{{ case.branch.name|default:"—" }}</td>
+                    <td><span class="badge-status badge-active">{{ case.get_status_display }}</span></td>
+                    <td class="small">
+                        {% if case.documents_verified %}<i class="bi bi-check-circle-fill text-success"></i>{% elif case.lead and case.lead.doc_passport_collected %}<i class="bi bi-hourglass text-warning"></i>{% else %}—{% endif %}
+                    </td>
+                    <td class="text-muted small">{{ case.updated_at|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'backoffice:case_detail' case.pk %}" class="action-btn text-decoration-none" title="Process case">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No cases yet. When follow-up marks a lead as <strong>Converted</strong>, a case opens here automatically.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

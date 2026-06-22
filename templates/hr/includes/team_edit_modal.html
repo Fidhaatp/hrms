@@ -1,0 +1,103 @@
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="{{ form_id }}" action="{% if edit_member %}{{ edit_url }}{% else %}#{% endif %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">{{ title }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if edit_form and edit_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in edit_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if edit_form and edit_member %}
+                    {% include "hr/includes/team_member_edit_fields.html" with show_salary=show_salary %}
+                    {% else %}
+                    <div class="row g-3{% if show_salary %} staff-member-form{% endif %}"{% if show_salary %} data-staff-salary-form{% endif %}>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Username</label>
+                            <input class="form-control" type="text" id="{{ username_display_id }}" value="" readonly disabled />
+                            <div class="form-text small">Username cannot be changed after creation.</div>
+                        </div>
+                        {% if branch_field_id %}
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Branch *</label>
+                            <select class="form-control" name="branch" id="{{ branch_field_id }}" required>
+                                <option value="">Select branch</option>
+                                {% for b in active_branches %}
+                                <option value="{{ b.pk }}">{{ b.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Profile picture</label>
+                            <input class="form-control" type="file" name="profile_picture" id="{{ picture_field_id }}" accept="image/*" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Email *</label>
+                            <input class="form-control" type="email" name="email" id="{{ email_field_id }}" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Mobile number *</label>
+                            <input class="form-control" type="text" name="phone" id="{{ phone_field_id }}" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Join date *</label>
+                            <input class="form-control" type="date" name="join_date" id="{{ join_field_id }}" required />
+                        </div>
+                        {% if show_dob %}
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Date of birth *</label>
+                            <input class="form-control" type="date" name="date_of_birth" id="{{ dob_field_id }}" required />
+                        </div>
+                        {% endif %}
+                        {% if show_backoffice_head %}
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_backoffice_head" class="form-check-input" id="{{ head_field_id|default:'edit_backoffice_is_head' }}" value="1" />
+                                <label class="form-check-label" for="{{ head_field_id|default:'edit_backoffice_is_head' }}">Back office head</label>
+                            </div>
+                            <div class="form-text small">Head can approve/reject leads and see all back office team data across branches.</div>
+                        </div>
+                        {% endif %}
+                        {% if show_salary %}
+                        <div class="col-12">
+                            <div class="small text-muted fw-semibold mt-1 mb-0">Salary details</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label branch-form-label">Basic salary *</label>
+                            <input class="form-control" type="number" name="basic_salary" id="{{ basic_salary_field_id }}" step="0.01" min="0" placeholder="0.00" oninput="recalcStaffTotal(this)" onkeyup="recalcStaffTotal(this)" onchange="recalcStaffTotal(this)" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label branch-form-label">Other salary *</label>
+                            <input class="form-control" type="number" name="other_salary" id="{{ other_salary_field_id }}" step="0.01" min="0" placeholder="0.00" oninput="recalcStaffTotal(this)" onkeyup="recalcStaffTotal(this)" onchange="recalcStaffTotal(this)" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label branch-form-label">Total salary *</label>
+                            <input class="form-control" type="number" name="total_salary" id="{{ total_salary_field_id }}" step="0.01" min="0" placeholder="0.00" readonly required />
+                            <div class="form-text small">Calculated automatically from basic + other.</div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">New password</label>
+                            <input class="form-control" type="password" name="password1" id="{{ pass1_field_id }}" autocomplete="new-password" placeholder="Leave blank to keep current password" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Confirm new password</label>
+                            <input class="form-control" type="password" name="password2" id="{{ pass2_field_id }}" autocomplete="new-password" placeholder="Confirm new password" />
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check2-all"></i> Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

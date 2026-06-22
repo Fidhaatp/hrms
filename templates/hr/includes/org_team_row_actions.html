@@ -1,0 +1,32 @@
+{% load team_docs_tags %}
+<button type="button" class="action-btn team-view-btn" title="View profile"
+    data-view-modal="{{ view_modal_id }}"
+    data-display-name="{{ member.display_name|escapejs }}"
+    data-username="{{ member.username|escapejs }}"
+    data-email="{{ member.email|escapejs }}"
+    data-branch="{{ member.branch.name|default:'—'|escapejs }}"
+    data-phone="{{ member.phone|escapejs }}"
+    data-join-date="{{ member.join_date|date:'d M Y' }}"
+    data-date-of-birth="{{ member.date_of_birth|date:'d M Y' }}"
+    data-status="{% if member.is_active %}Active{% else %}Deactivated{% endif %}"
+    data-show-dob="{% if show_dob %}true{% else %}false{% endif %}"
+    data-show-branch="true"
+    {% include "hr/includes/team_document_view_data.html" with user=member.user branch=member.branch %}
+    <i class="bi bi-eye-fill"></i>
+</button>
+<button type="button" class="action-btn team-edit-btn" title="Edit profile"
+    data-edit-modal="{{ edit_modal_id }}"
+    data-form-id="{{ form_id }}"
+    data-url="{% url edit_url_name member.pk %}"
+    data-username="{{ member.username|escapejs }}"
+    data-email="{{ member.email|escapejs }}"
+    data-phone="{{ member.phone|escapejs }}"
+    data-join-date="{{ member.join_date|date:'Y-m-d' }}"
+    data-date-of-birth="{{ member.date_of_birth|date:'Y-m-d' }}"
+    data-username-display-id="{{ username_display_id }}"
+    data-email-field-id="{{ email_field_id }}"
+    data-phone-field-id="{{ phone_field_id }}"
+    data-join-field-id="{{ join_field_id }}"
+    data-dob-field-id="{{ dob_field_id|default:'' }}">
+    <i class="bi bi-pencil-fill"></i>
+</button>

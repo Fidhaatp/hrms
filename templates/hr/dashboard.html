@@ -1,0 +1,325 @@
+<div class="dashboard-page portal-dashboard hr-dashboard-page">
+    <script type="application/json" id="hr-dashboard-chart-data">{{ dashboard_charts_json|safe }}</script>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">HR Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'hr:staff_list' %}" class="btn btn-light btn-sm"><i class="bi bi-people me-1"></i>Team</a>
+            <a href="{% url 'hr:leave_requests' %}" class="topbar-quick-add text-decoration-none">
+                <i class="bi bi-calendar2-week"></i> Leave queue
+            </a>
+        </div>
+    </div>
+
+    <div class="portal-dashboard-hero portal-dashboard-hero--hr mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-briefcase-fill me-1"></i> Human resources</div>
+                <h2 class="portal-dashboard-hero__title">Hello, {{ hr_display_name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">
+                    Monitor team documents, leave approvals, attendance, and organization-wide lead performance from one place.
+                </p>
+                <div class="hr-hero-chips mt-3">
+                    {% if document_expiry_expired_count %}
+                    <span class="hr-hero-chip hr-hero-chip--danger"><i class="bi bi-x-octagon-fill"></i> {{ document_expiry_expired_count }} expired</span>
+                    {% endif %}
+                    {% if document_expiry_soon_count %}
+                    <span class="hr-hero-chip hr-hero-chip--warn"><i class="bi bi-calendar-event"></i> {{ document_expiry_soon_count }} expiring soon</span>
+                    {% endif %}
+                    {% if metrics.leave_pending_hr %}
+                    <span class="hr-hero-chip"><i class="bi bi-hourglass-split"></i> {{ metrics.leave_pending_hr }} leave pending</span>
+                    {% endif %}
+                    <span class="hr-hero-chip"><i class="bi bi-people-fill"></i> {{ metrics.users_total }} team accounts</span>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Quick links</div>
+                    <div class="portal-dashboard-hero__links">
+                        <a href="{% url 'hr:compliance' %}" class="portal-dashboard-hero__link-btn">
+                            <i class="bi bi-shield-check"></i><span>Compliance</span>
+                        </a>
+                        <a href="{% url 'hr:org_database' %}" class="portal-dashboard-hero__link-btn">
+                            <i class="bi bi-database"></i><span>Org data</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if document_expiry_alerts %}
+    {% include "core/includes/document_expiry_alerts_banner.html" %}
+    {% endif %}
+
+    <p class="dashboard-section-label">Quick actions</p>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-3 d-flex">
+            <a href="{% url 'hr:staff_list' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--green"><i class="bi bi-people-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Staff accounts</span>
+                    <span class="portal-action-card__desc">Manage branch staff profiles</span>
+                </span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 d-flex">
+            <a href="{% url 'hr:leave_requests' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--amber"><i class="bi bi-calendar2-week"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Leave requests</span>
+                    <span class="portal-action-card__desc">Approve after branch manager</span>
+                </span>
+                {% if metrics.leave_pending_hr %}<span class="portal-action-card__count">{{ metrics.leave_pending_hr }}</span>{% endif %}
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 d-flex">
+            <a href="{% url 'hr:compliance' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--blue"><i class="bi bi-passport-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">Compliance</span>
+                    <span class="portal-action-card__desc">Visa, insurance & contracts</span>
+                </span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 d-flex">
+            <a href="{% url 'hr:leads' %}" class="portal-action-card w-100 text-decoration-none">
+                <span class="portal-action-card__icon portal-action-card__icon--violet"><i class="bi bi-funnel-fill"></i></span>
+                <span class="portal-action-card__body">
+                    <span class="portal-action-card__title">All leads</span>
+                    <span class="portal-action-card__desc">Organization-wide CRM view</span>
+                </span>
+                <span class="portal-action-card__count">{{ lead_stats.total }}</span>
+            </a>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">HR operations</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-x-octagon-fill"></i></div>
+                </div>
+                <div class="stat-label">Docs expired</div>
+                <div class="stat-value">{{ document_expiry_expired_count|default:0 }}</div>
+                <div class="stat-sub">Needs renewal</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-file-earmark-medical-fill"></i></div>
+                </div>
+                <div class="stat-label">Docs expiring</div>
+                <div class="stat-value">{{ document_expiry_soon_count|default:0 }}</div>
+                <div class="stat-sub">Within {{ document_expiry_alert_days }} days</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-passport-fill"></i></div>
+                </div>
+                <div class="stat-label">Visa expiring</div>
+                <div class="stat-value">{{ metrics.visa_expiring_soon }}</div>
+                <div class="stat-sub">Next 30 days</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+                </div>
+                <div class="stat-label">Insurance expiring</div>
+                <div class="stat-value">{{ metrics.insurance_expiring_soon }}</div>
+                <div class="stat-sub">Next 30 days</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-violet w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-person-check-fill"></i></div>
+                </div>
+                <div class="stat-label">Present today</div>
+                <div class="stat-value">{{ metrics.attendance_today }}</div>
+                <div class="stat-sub">Employee attendance</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-calendar2-week-fill"></i></div>
+                </div>
+                <div class="stat-label">Leave pending HR</div>
+                <div class="stat-value">{{ metrics.leave_pending_hr }}</div>
+                <div class="stat-sub">After branch manager</div>
+            </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Leads overview</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                    {% if lead_stats.total_trend is not None %}
+                    <div class="stat-trend {% if lead_stats.total_trend >= 0 %}up{% else %}down{% endif %}">
+                        <i class="bi bi-arrow-{% if lead_stats.total_trend >= 0 %}up{% else %}down{% endif %}-short"></i>{{ lead_stats.total_trend|floatformat:0 }}%
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="stat-label">Total leads</div>
+                <div class="stat-value">{{ lead_stats.total }}</div>
+                <div class="stat-sub">{{ lead_stats.total_this_month }} this month</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+                    {% if lead_stats.new_week_trend is not None %}
+                    <div class="stat-trend {% if lead_stats.new_week_trend >= 0 %}up{% else %}down{% endif %}">
+                        <i class="bi bi-arrow-{% if lead_stats.new_week_trend >= 0 %}up{% else %}down{% endif %}-short"></i>{{ lead_stats.new_week_trend|floatformat:0 }}%
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="stat-label">New leads</div>
+                <div class="stat-value">{{ lead_stats.new_week }}</div>
+                <div class="stat-sub">This week</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
+                </div>
+                <div class="stat-label">Converted</div>
+                <div class="stat-value">{{ lead_stats.converted }}</div>
+                <div class="stat-sub">{{ lead_stats.conversion_rate }}% conversion</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+                <div class="stat-label">In progress</div>
+                <div class="stat-value">{{ lead_stats.in_progress }}</div>
+                <div class="stat-sub">{{ lead_stats.followup_due_today }} follow-up due today</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 dashboard-equal-row dashboard-chart-row">
+        <div class="col-lg-8 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Monthly revenue &amp; leads</div>
+                        <div class="section-card-subtitle">{{ chart_subtitle|default:"Last 6 months" }}</div>
+                    </div>
+                </div>
+                <div class="chart-wrap flex-grow-1">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Lead sources</div>
+                        <div class="section-card-subtitle">All time</div>
+                    </div>
+                </div>
+                <div class="chart-wrap chart-wrap--donut flex-grow-1">
+                    <canvas id="leadSourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 dashboard-equal-row">
+        <div class="col-lg-8 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div class="section-card-title">Recent leads</div>
+                    <a class="action-btn" href="{% url 'hr:leads' %}" title="View all leads"><i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="table-responsive flex-grow-1">
+                    <table class="table table-hover mb-0 dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Follow up</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_leads %}
+                            <tr>
+                                <td><span class="text-muted small">{{ lead.display_id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+                                        <span class="fw-semibold">{{ lead.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ lead.get_company_display }}</td>
+                                <td>
+                                    {% if lead.backoffice_status == 'pending' %}
+                                    <span class="badge-status badge-pending">BO: Pending</span>
+                                    {% elif lead.backoffice_status == 'rejected' %}
+                                    <span class="badge-status badge-closed">Not correct</span>
+                                    {% elif lead.followup_status %}
+                                    <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
+                                    {% else %}
+                                    <span class="badge-status badge-{{ lead.team_status_badge }}">{{ lead.team_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ lead.next_followup_date|date:"d M Y"|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No leads yet. Staff add leads from their portal.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div class="section-card-title">Recent activity</div>
+                </div>
+                <div class="dashboard-activity-list flex-grow-1">
+                    {% for item in recent_activity %}
+                    <div class="activity-item{% if forloop.last %} mb-0{% endif %}">
+                        <div class="activity-icon activity-icon--{{ item.tone }}"><i class="bi bi-{{ item.icon }}-fill"></i></div>
+                        <div class="activity-item__body">
+                            <div class="activity-text">{{ item.text }}</div>
+                            <div class="activity-time">{{ item.time_ago }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0 py-3">No lead activity yet. Updates appear when staff add leads or follow-up teams log progress.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

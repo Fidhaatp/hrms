@@ -1,0 +1,63 @@
+<div class="modal fade" id="leadFilesListModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title">Staff ZIP files</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="leadFilesListName"></p>
+                <ul class="list-group list-group-flush small mb-0" id="leadFilesListItems"></ul>
+                <p class="text-muted small mb-0 mt-2 d-none" id="leadFilesListEmpty">No files found inside the ZIP.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window.openLeadFilesList) return;
+
+    window.openLeadFilesList = function (name, payload) {
+        const modalEl = document.getElementById('leadFilesListModal');
+        if (!modalEl) return;
+
+        document.getElementById('leadFilesListName').textContent = name || '';
+        const list = document.getElementById('leadFilesListItems');
+        const empty = document.getElementById('leadFilesListEmpty');
+        const files = (payload && payload.files) || [];
+        list.innerHTML = '';
+
+        if (!files.length) {
+            empty.classList.remove('d-none');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            return;
+        }
+
+        empty.classList.add('d-none');
+        files.forEach((file) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
+            li.innerHTML = `<span><i class="bi bi-file-earmark me-1"></i>${file.name}</span>
+                <button type="button" class="btn btn-sm btn-light lead-file-view-btn" data-url="${file.url}" data-label="${file.name}">View</button>`;
+            list.appendChild(li);
+        });
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    };
+
+    document.addEventListener('click', (event) => {
+        const btn = event.target.closest('.lead-files-list-btn');
+        if (!btn) return;
+        event.preventDefault();
+        let payload = {};
+        try {
+            payload = JSON.parse(btn.dataset.zipCheck || '{}');
+        } catch (e) { payload = {}; }
+        openLeadFilesList(btn.dataset.name || '', payload);
+    });
+})();
+</script>

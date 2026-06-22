@@ -1,0 +1,65 @@
+{% load profile_tags %}
+<nav id="sidebar">
+    <div class="sidebar-brand">
+        {% url portal_home_url_name as home_url %}
+        {% include "core/includes/brand_logo.html" with brand_url=home_url brand_subtitle=portal_brand_sub %}
+    </div>
+
+    <div class="sidebar-nav">
+        <ul class="nav-item-group">
+            {% for item in portal_nav %}
+            <li>
+                <a class="nav-link-item{% if active_nav == item.nav_key %} active{% endif %}" href="{% url item.url_name %}">
+                    <span class="nav-icon">
+                        {% if item.nav_key == 'leads' and followup_leads_queue_count %}
+                        <i class="bi bi-bell-fill nav-icon-alert"></i>
+                        {% elif item.nav_key == 'pending' and backoffice_pending_verifications_count %}
+                        <i class="bi bi-bell-fill nav-icon-alert"></i>
+                        {% elif item.nav_key == 'pending_leads' and backoffice_team_pending_leads_count %}
+                        <i class="bi bi-bell-fill nav-icon-alert"></i>
+                        {% elif item.nav_key == 'procedures' and backoffice_procedure_review_count %}
+                        <i class="bi bi-bell-fill nav-icon-alert"></i>
+                        {% else %}
+                        <i class="{{ item.icon }}"></i>
+                        {% endif %}
+                    </span>
+                    <span class="nav-link-text">{{ item.label }}</span>
+                    {% if item.nav_key == 'leads' and followup_leads_queue_count %}
+                    <span class="nav-badge nav-badge-alert">{{ followup_leads_queue_count }}</span>
+                    {% elif item.nav_key == 'pending' and backoffice_pending_verifications_count %}
+                    <span class="nav-badge nav-badge-alert">{{ backoffice_pending_verifications_count }}</span>
+                    {% elif item.nav_key == 'pending_leads' and backoffice_team_pending_leads_count %}
+                    <span class="nav-badge nav-badge-alert">{{ backoffice_team_pending_leads_count }}</span>
+                    {% elif item.nav_key == 'procedures' and backoffice_procedure_review_count %}
+                    <span class="nav-badge nav-badge-alert">{{ backoffice_procedure_review_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="sidebar-footer">
+        {% if portal_profile_url_name %}
+        <a href="{% url portal_profile_url_name %}" class="sidebar-user text-decoration-none mb-2">
+            {% profile_avatar request.user size="sm" extra_class="hr-user-avatar" %}
+            <div class="sidebar-user-info">
+                <div class="user-name">{{ portal_display_name }}</div>
+                <div class="user-role">{{ portal_role }}</div>
+            </div>
+        </a>
+        {% else %}
+        <div class="sidebar-user mb-2">
+            {% profile_avatar request.user size="sm" extra_class="hr-user-avatar" %}
+            <div class="sidebar-user-info">
+                <div class="user-name">{{ portal_display_name }}</div>
+                <div class="user-role">{{ portal_role }}</div>
+            </div>
+        </div>
+        {% endif %}
+        <a href="{% url 'core:logout' %}" class="nav-link-item py-2" style="font-size:12px">
+            <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span class="nav-link-text">Sign out</span>
+        </a>
+    </div>
+</nav>

@@ -1,0 +1,124 @@
+<div class="modal fade" id="caseUpdateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="caseUpdateForm" action="#">
+                {% csrf_token %}
+                <input type="hidden" name="return_to" id="case_return_to" value="{{ return_to }}" />
+                <input type="hidden" name="status_filter" id="case_status_filter" value="{{ status_filter|default:'all' }}" />
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Update case</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if case_form and case_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in case_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <p class="small text-muted mb-3"><strong id="case_modal_ref">—</strong> · <span id="case_modal_client">—</span></p>
+                    {% if case_form and edit_case %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Status *</label>
+                            {{ case_form.status }}
+                            {% if case_form.status.errors %}<div class="text-danger small">{{ case_form.status.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Processing notes</label>
+                            {{ case_form.notes }}
+                        </div>
+                        <div class="col-12" id="caseSubmissionFields">
+                            <label class="form-label branch-form-label">Submission reference *</label>
+                            {{ case_form.submission_reference }}
+                            {% if case_form.submission_reference.errors %}<div class="text-danger small">{{ case_form.submission_reference.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12" id="caseCompletionFields">
+                            <label class="form-label branch-form-label">Completion summary *</label>
+                            {{ case_form.completion_notes }}
+                            {% if case_form.completion_notes.errors %}<div class="text-danger small">{{ case_form.completion_notes.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Status *</label>
+                            <select class="form-control" name="status" id="case_status" required>
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Processing notes</label>
+                            <textarea class="form-control" name="notes" id="case_notes" rows="2"></textarea>
+                        </div>
+                        <div class="col-12 d-none" id="caseSubmissionFields">
+                            <label class="form-label branch-form-label">Submission reference *</label>
+                            <input class="form-control" type="text" name="submission_reference" id="case_submission_ref" placeholder="Online / file reference number" />
+                        </div>
+                        <div class="col-12 d-none" id="caseCompletionFields">
+                            <label class="form-label branch-form-label">Completion summary *</label>
+                            <textarea class="form-control" name="completion_notes" id="case_completion_notes" rows="2" placeholder="What was delivered to the client"></textarea>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check2-all"></i> Save update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('caseUpdateModal');
+    if (!modal) return;
+
+    function toggleCaseFields(status) {
+        const sub = document.getElementById('caseSubmissionFields');
+        const comp = document.getElementById('caseCompletionFields');
+        if (sub) sub.classList.toggle('d-none', status !== 'submitted');
+        if (comp) comp.classList.toggle('d-none', status !== 'completed');
+    }
+
+    document.querySelectorAll('.case-process-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const form = document.getElementById('caseUpdateForm');
+            if (form && btn.dataset.url) form.action = btn.dataset.url;
+            const ref = document.getElementById('case_modal_ref');
+            const client = document.getElementById('case_modal_client');
+            if (ref) ref.textContent = btn.dataset.ref || '—';
+            if (client) client.textContent = btn.dataset.client || '—';
+            const ret = document.getElementById('case_return_to');
+            const filt = document.getElementById('case_status_filter');
+            if (ret) ret.value = btn.dataset.returnTo || '';
+            if (filt) filt.value = btn.dataset.statusFilter || 'all';
+            const statusEl = document.getElementById('case_status');
+            if (statusEl) statusEl.value = btn.dataset.status || 'received';
+            const notes = document.getElementById('case_notes');
+            if (notes) notes.value = btn.dataset.notes || '';
+            const subRef = document.getElementById('case_submission_ref');
+            if (subRef) subRef.value = btn.dataset.submissionRef || '';
+            const comp = document.getElementById('case_completion_notes');
+            if (comp) comp.value = btn.dataset.completionNotes || '';
+            toggleCaseFields(btn.dataset.status || '');
+        });
+    });
+
+    const statusEl = document.getElementById('case_status') || modal.querySelector('[name="status"]');
+    if (statusEl) {
+        statusEl.addEventListener('change', () => toggleCaseFields(statusEl.value));
+        toggleCaseFields(statusEl.value);
+    }
+
+    {% if show_case_modal %}
+    new bootstrap.Modal(modal).show();
+    {% if case_form %}
+    toggleCaseFields('{{ case_form.data.status|default:edit_case.status }}');
+    {% endif %}
+    {% endif %}
+})();
+</script>

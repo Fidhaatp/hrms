@@ -1,0 +1,58 @@
+{% for branch in branches %}
+<tr data-state="{{ branch.state }}" data-status="{% if branch.is_deleted %}deactivated{% else %}active{% endif %}" class="{% if branch.is_deleted %}table-secondary{% endif %}">
+    <td>
+        <span class="fw-semibold">{{ branch.name }}</span>
+    </td>
+    <td>{{ branch.city }}</td>
+    <td>{{ branch.state }}</td>
+    <td>{{ branch.phone }}</td>
+    <td>{{ branch.email }}</td>
+    <td class="text-muted small">{{ branch.opening_date|date:"d M Y" }}</td>
+    <td class="small">
+        {% for mgr in branch.managers.all %}
+        <div class="branch-mgr-tag" title="{{ mgr.email }}">
+            <i class="bi bi-person-badge"></i> {{ mgr.username }}
+            {% if not mgr.is_active %}<span class="text-muted">(off)</span>{% endif %}
+        </div>
+        {% empty %}
+        <span class="text-muted">—</span>
+        {% endfor %}
+    </td>
+    <td>
+        {% if branch.is_deleted %}
+        <span class="badge-status badge-closed">Deactivated</span>
+        {% else %}
+        <span class="badge-status badge-won">Active</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="d-flex gap-1 flex-wrap">
+            {% if not branch.is_deleted %}
+            <button type="button" class="action-btn branch-edit-btn" title="Edit"
+                data-url="{% url 'hr:branch_edit' branch.pk %}"
+                data-name="{{ branch.name|escapejs }}"
+                data-email="{{ branch.email|escapejs }}"
+                data-phone="{{ branch.phone|escapejs }}"
+                data-opening-date="{{ branch.opening_date|date:'Y-m-d' }}"
+                data-nationality="{{ branch.nationality|escapejs }}"
+                data-address="{{ branch.address|escapejs }}"
+                data-city="{{ branch.city|escapejs }}"
+                data-state="{{ branch.state|escapejs }}">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button type="button" class="action-btn branch-deactivate-btn" title="Deactivate"
+                data-name="{{ branch.name|escapejs }}"
+                data-url="{% url 'hr:branch_deactivate' branch.pk %}">
+                <i class="bi bi-pause-circle-fill"></i>
+            </button>
+            {% else %}
+            <button type="button" class="action-btn branch-reactivate-btn btn-status-activate" title="Activate"
+                data-name="{{ branch.name|escapejs }}"
+                data-url="{% url 'hr:branch_reactivate' branch.pk %}">
+                <i class="bi bi-play-circle-fill"></i>
+            </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}

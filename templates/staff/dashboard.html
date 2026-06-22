@@ -1,0 +1,295 @@
+<div class="dashboard-page portal-dashboard">
+    <script type="application/json" id="hr-dashboard-chart-data">{{ dashboard_charts_json|safe }}</script>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Staff Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'staff:lead_list' %}" class="topbar-quick-add text-decoration-none">
+                <i class="bi bi-plus-lg"></i> Add lead
+            </a>
+        </div>
+    </div>
+
+    <div class="portal-dashboard-hero portal-dashboard-hero--green mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-person-badge me-1"></i> Branch staff</div>
+                <h2 class="portal-dashboard-hero__title">Welcome, {{ portal_display_name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">
+                    {% if staff_profile %}
+                    Add leads, upload documents, and track your monthly target
+                    {% if staff_profile.branch %} at <strong>{{ staff_profile.branch.name }}</strong>{% endif %}.
+                    {% else %}
+                    Manage your leads and track performance from one place.
+                    {% endif %}
+                </p>
+            </div>
+            {% if staff_profile %}
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Your profile</div>
+                    <div class="fw-semibold">{{ staff_profile.phone }}</div>
+                    <div class="small opacity-75 mt-1">Joined {{ staff_profile.join_date|date:"d M Y" }}</div>
+                    <a href="{% url 'staff:lead_list' %}" class="portal-dashboard-hero__link-btn mt-2">
+                        <i class="bi bi-plus-lg"></i><span>Add lead</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">My lead pipeline</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'staff:lead_list' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                </div>
+                <div class="stat-label">Total leads</div>
+                <div class="stat-value">{{ lead_stats.total }}</div>
+                <div class="stat-sub">
+                    {{ lead_stats.this_month }} this month
+                    {% if lead_stats.month_trend is not None %}
+                    · {% if lead_stats.month_trend >= 0 %}+{% endif %}{{ lead_stats.month_trend }}%
+                    {% endif %}
+                </div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'staff:lead_list' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-pencil-square"></i></div>
+                </div>
+                <div class="stat-label">In progress</div>
+                <div class="stat-value">{{ lead_stats.in_progress }}</div>
+                <div class="stat-sub">
+                    {% if lead_stats.needs_documents %}
+                    {{ lead_stats.needs_documents }} need documents
+                    {% else %}
+                    With you — not sent yet
+                    {% endif %}
+                </div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-telephone-fill"></i></div>
+                </div>
+                <div class="stat-label">With follow-up</div>
+                <div class="stat-value">{{ lead_stats.at_followup }}</div>
+                <div class="stat-sub">Sent for review</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-building-check"></i></div>
+                </div>
+                <div class="stat-label">At back office</div>
+                <div class="stat-value">{{ lead_stats.at_backoffice }}</div>
+                <div class="stat-sub">
+                    {% if lead_stats.rejected %}{{ lead_stats.rejected }} rejected{% else %}Approved by follow-up{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Today at a glance</p>
+    <div class="section-card target-breakdown-shell mb-4">
+        {% include "portal/includes/target_breakdown_panel.html" with target_breakdown=metrics.target_breakdown show_track_note=True %}
+        <div class="target-breakdown-panel__footer">
+            <a href="{% url 'staff:targets' %}" class="small text-decoration-none fw-semibold">Full targets page →</a>
+        </div>
+    </div>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-4 d-flex">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+                </div>
+                <div class="stat-label">Attendance</div>
+                <div class="stat-value">{{ metrics.attendance_status }}</div>
+                <div class="stat-sub">{{ metrics.attendance_present_days }} days this month</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-4 d-flex">
+            <a href="{% url 'staff:leave_list' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-calendar2-week-fill"></i></div>
+                </div>
+                <div class="stat-label">Yearly leave left</div>
+                <div class="stat-value">{{ leave_summary.remaining }}</div>
+                <div class="stat-sub">{{ leave_summary.used }}/{{ leave_summary.entitlement }} used</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-4 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-trophy-fill"></i></div>
+                </div>
+                <div class="stat-label">Incentives</div>
+                <div class="stat-value">{{ metrics.incentive_total }}</div>
+                <div class="stat-sub">This month</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 dashboard-equal-row dashboard-chart-row">
+        <div class="col-lg-8 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Leads submitted</div>
+                        <div class="section-card-subtitle">{{ chart_subtitle|default:"Last 6 months" }}</div>
+                    </div>
+                </div>
+                <div class="chart-wrap flex-grow-1">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Lead sources</div>
+                        <div class="section-card-subtitle">Your submissions</div>
+                    </div>
+                </div>
+                <div class="chart-wrap chart-wrap--donut flex-grow-1">
+                    <canvas id="leadSourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="section-card dashboard-panel">
+                <div class="section-card-header d-flex justify-content-between align-items-center">
+                    <div class="section-card-title">Recent leads</div>
+                    <a href="{% url 'staff:lead_list' %}" class="small text-decoration-none">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Lead</th>
+                                <th>Service</th>
+                                <th class="text-center">Docs</th>
+                                <th>Status</th>
+                                <th>Stage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_leads %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+                                        <div>
+                                            <span class="fw-semibold">{{ lead.name }}</span>
+                                            <div class="text-muted small">{{ lead.display_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="small text-muted">{{ lead.service.name|default:"—" }}</td>
+                                <td class="text-center">
+                                    {% if lead.service_documents_zip %}
+                                    <i class="bi bi-check-circle-fill text-success" title="Documents uploaded"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-danger" title="Documents missing"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if lead.staff_status %}
+                                    <span class="badge-status badge-{{ lead.staff_status.badge_style }}">{{ lead.staff_status.name }}</span>
+                                    {% else %}
+                                    <span class="badge-status badge-pending">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small">
+                                    {% if lead.backoffice_status == 'rejected' %}
+                                    <span class="text-danger">Rejected</span>
+                                    {% elif lead.sent_to_backoffice_at %}
+                                    <span class="text-success">Back office</span>
+                                    {% elif lead.sent_to_followup_at %}
+                                    <span class="text-primary">Follow-up</span>
+                                    {% else %}
+                                    <span class="text-muted">With you</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-muted small text-center py-3">
+                                    No leads yet. <a href="{% url 'staff:lead_list' %}">Add your first lead</a>.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex flex-column gap-3">
+            {% if action_leads %}
+            <div class="section-card dashboard-panel">
+                <div class="section-card-header">
+                    <div class="section-card-title">Needs attention</div>
+                    <div class="section-card-subtitle">Upload service documents</div>
+                </div>
+                <ul class="list-unstyled mb-0">
+                    {% for lead in action_leads %}
+                    <li class="d-flex align-items-center gap-2 py-2 border-bottom">
+                        <i class="bi bi-file-earmark-zip text-danger"></i>
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="small fw-semibold text-truncate">{{ lead.name }}</div>
+                            <div class="text-muted small">{{ lead.display_id }}</div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-2">
+                    <a href="{% url 'staff:lead_list' %}" class="small text-decoration-none">Open leads →</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="section-card dashboard-panel flex-grow-1 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div class="section-card-title">Recent activity</div>
+                </div>
+                <div class="dashboard-activity-list flex-grow-1">
+                    {% for item in recent_activity %}
+                    <div class="activity-item{% if forloop.last %} mb-0{% endif %}">
+                        <div class="activity-icon activity-icon--{{ item.tone }}"><i class="bi bi-{{ item.icon }}-fill"></i></div>
+                        <div class="activity-item__body">
+                            <div class="activity-text">{{ item.text }}</div>
+                            <div class="activity-time">{{ item.time_ago }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0 py-3">Activity from your leads will appear here.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

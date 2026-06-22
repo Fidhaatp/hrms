@@ -1,0 +1,191 @@
+<div class="lead-monitor-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Lead tracking history</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i>
+                <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Lead tracking history</span>
+            </div>
+        </div>
+    </div>
+
+    {% if branch %}
+    <div class="section-card portal-help-banner mb-3">
+        <p class="mb-0"><i class="bi bi-clock-history me-2 text-success"></i><strong>Full pipeline history</strong> — staff add → documents → follow-up → follow-up approved → back office verified. Click a row to see every step with date and notes.</p>
+    </div>
+
+    <div class="section-card lead-monitor-intro mb-3 py-3 px-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <div class="section-card-title mb-0" style="font-size:14px"><i class="bi bi-diagram-3-fill me-2" style="color:var(--takhlees-green)"></i>{{ branch.name }}</div>
+            </div>
+            <div class="lead-monitor-count-pill">{{ total_count }} lead{{ total_count|pluralize }}</div>
+        </div>
+    </div>
+
+    <form method="get" class="section-card lead-monitor-filters mb-3 py-3 px-3" id="leadMonitorFilterForm">
+        <div class="row g-2 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label branch-form-label small mb-1">Search</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="search" name="q" class="form-control border-start-0" placeholder="Name, phone, staff, ID…" value="{{ monitoring_filters.q }}" />
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label branch-form-label small mb-1">Period</label>
+                <select name="period" class="form-select form-select-sm" id="leadMonitorPeriod">
+                    <option value="today" {% if monitoring_filters.period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if monitoring_filters.period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="week" {% if monitoring_filters.period == 'week' %}selected{% endif %}>This week</option>
+                    <option value="month" {% if monitoring_filters.period == 'month' %}selected{% endif %}>This month</option>
+                    <option value="year" {% if monitoring_filters.period == 'year' %}selected{% endif %}>This year</option>
+                    <option value="custom" {% if monitoring_filters.period == 'custom' %}selected{% endif %}>Custom date range</option>
+                    <option value="all" {% if monitoring_filters.period == 'all' %}selected{% endif %}>All history</option>
+                </select>
+            </div>
+            <div class="col-lg-4 col-md-8 {% if monitoring_filters.period != 'custom' %}d-none{% endif %}" id="leadMonitorCustomDates">
+                <label class="form-label branch-form-label small mb-1">Date range</label>
+                <div class="d-flex gap-2">
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ monitoring_filters.date_from_raw }}" />
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ monitoring_filters.date_to_raw }}" />
+                </div>
+            </div>
+            <div class="col-lg-1 col-md-4">
+                <button type="submit" class="topbar-quick-add w-100 justify-content-center btn-sm py-2"><i class="bi bi-funnel-fill"></i> Apply</button>
+            </div>
+        </div>
+        <div class="row g-2 align-items-end mt-2 pt-2 border-top">
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label branch-form-label small mb-1">Staff status</label>
+                <select name="staff_status" class="form-select form-select-sm">
+                    <option value="all" {% if monitoring_filters.staff_status == 'all' %}selected{% endif %}>All staff status</option>
+                    {% for status in filter_staff_statuses %}
+                    <option value="{{ status.pk }}" {% if monitoring_filters.staff_status == status.pk|stringformat:'s' %}selected{% endif %}>{{ status.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label branch-form-label small mb-1">Follow-up status</label>
+                <select name="followup_status" class="form-select form-select-sm">
+                    <option value="all" {% if monitoring_filters.followup_status == 'all' %}selected{% endif %}>All follow-up</option>
+                    <option value="none" {% if monitoring_filters.followup_status == 'none' %}selected{% endif %}>Not set yet</option>
+                    {% for status in filter_followup_statuses %}
+                    <option value="{{ status.pk }}" {% if monitoring_filters.followup_status == status.pk|stringformat:'s' %}selected{% endif %}>{{ status.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label branch-form-label small mb-1">Back office</label>
+                <select name="backoffice_status" class="form-select form-select-sm">
+                    <option value="all" {% if monitoring_filters.backoffice_status == 'all' %}selected{% endif %}>All back office</option>
+                    {% for value, label in filter_backoffice_statuses %}
+                    <option value="{{ value }}" {% if monitoring_filters.backoffice_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-auto col-md-4">
+                <a href="?" class="btn btn-sm btn-light">Clear filters</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="section-card lead-monitor-table-wrap p-0 overflow-hidden">
+        <div class="lead-monitor-table-head d-none d-lg-grid">
+            <span>Lead</span>
+            <span>Staff</span>
+            <span>Pipeline</span>
+            <span>Steps</span>
+            <span>Updated</span>
+            <span></span>
+        </div>
+
+        {% for card in lead_cards %}
+        {% with lead=card.lead steps=card.steps stage=card.stage_label milestones=card.milestones %}
+        <div class="lead-monitor-row" data-lead-row>
+            <div class="lead-monitor-row__main">
+                <div class="lead-monitor-row__lead">
+                    <span class="lead-monitor-row__id">{{ lead.display_id }}</span>
+                    <span class="lead-monitor-row__name">{{ lead.name }} · {{ lead.get_company_display }}</span>
+                    <span class="lead-monitor-row__contact d-lg-none">{{ lead.phone }}</span>
+                </div>
+                <div class="lead-monitor-row__staff">
+                    <i class="bi bi-person-fill text-muted"></i>
+                    @{{ lead.created_by.get_username }}
+                </div>
+                <div class="lead-monitor-row__milestones" title="Added · Docs · Follow-up · FU approved · Back office">
+                    <span class="lead-milestone {% if milestones.added %}is-done{% endif %}" title="Staff added lead"><i class="bi bi-person-plus-fill"></i></span>
+                    <span class="lead-milestone {% if milestones.documents %}is-done{% endif %}" title="Documents uploaded"><i class="bi bi-file-earmark-zip-fill"></i></span>
+                    <span class="lead-milestone {% if milestones.followup %}is-done{% endif %}" title="Sent to follow-up"><i class="bi bi-telephone-fill"></i></span>
+                    <span class="lead-milestone {% if milestones.followup_approved %}is-done{% endif %}" title="Follow-up approved"><i class="bi bi-check-circle-fill"></i></span>
+                    <span class="lead-milestone {% if milestones.backoffice_verified %}is-done{% elif milestones.backoffice_rejected %}is-rejected{% endif %}" title="Back office result"><i class="bi bi-building-check"></i></span>
+                </div>
+                <div class="lead-monitor-row__track">
+                    {% if steps %}
+                    <div class="lead-mini-track" title="Click row to see full history">
+                        {% for step in steps %}
+                        <span class="lead-mini-step tone-{{ step.tone }}" title="{{ step.title }} · {{ step.staff }} · {{ step.at|date:'d M Y, H:i' }}">{{ forloop.counter }}</span>
+                        {% if not forloop.last %}<span class="lead-mini-line"></span>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="lead-mini-count">{{ steps|length }} step{{ steps|length|pluralize }}</span>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </div>
+                <div class="lead-monitor-row__date">{{ lead.updated_at|date:"d M Y" }}<span class="d-none d-xl-inline"> · {{ lead.updated_at|date:"H:i" }}</span></div>
+                <button type="button" class="lead-monitor-row__toggle action-btn" aria-expanded="false" aria-label="Show history">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </div>
+            <div class="lead-monitor-row__detail" hidden>
+                <div class="lead-monitor-detail-grid">
+                    <div class="lead-monitor-detail-meta">
+                        <p class="mb-1 small"><strong>Phone:</strong> {{ lead.phone|default:"—" }}</p>
+                        <p class="mb-1 small"><strong>Email:</strong> {{ lead.email|default:"—" }}</p>
+                        <p class="mb-1 small"><strong>Service:</strong> {{ lead.service.name|default:"—" }}</p>
+                        <p class="mb-0 small"><strong>Pipeline:</strong> {{ stage }}</p>
+                    </div>
+                    {% if steps %}
+                    <ol class="lead-monitor-timeline">
+                        {% for step in steps %}
+                        <li class="lead-monitor-timeline__item tone-{{ step.tone }}">
+                            <span class="lead-monitor-timeline__dot">{{ forloop.counter }}</span>
+                            <div class="lead-monitor-timeline__body">
+                                <div class="lead-monitor-timeline__title">{{ step.title }}</div>
+                                <div class="lead-monitor-timeline__meta">
+                                    <span>
+                                        <i class="bi bi-person"></i>
+                                        {% if step.team %}<strong>{{ step.team }}</strong> · {% endif %}
+                                        {{ step.staff }}{% if step.staff_username %} <span class="text-muted">@{{ step.staff_username }}</span>{% endif %}
+                                    </span>
+                                    <span class="lead-monitor-timeline__badge">{{ step.status }}</span>
+                                    <span><i class="bi bi-clock"></i> {{ step.at|date:"d M Y, H:i" }}</span>
+                                </div>
+                                {% if step.note %}<div class="lead-monitor-timeline__note">{{ step.note }}</div>{% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                    {% else %}
+                    <p class="text-muted small mb-0">No history recorded.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% empty %}
+        <div class="p-4 text-center text-muted small">No leads match your filters.</div>
+        {% endfor %}
+    </div>
+
+    {% include "portal/includes/pagination.html" %}
+
+    {% else %}
+    <div class="section-card">
+        <p class="text-center text-muted py-4 mb-0">Branch profile not found.</p>
+    </div>
+    {% endif %}
+</div>

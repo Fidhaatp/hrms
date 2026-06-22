@@ -1,0 +1,298 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Staff</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Staff</span>
+        </div>
+    </div>
+    {% if branch and target_summary.staff_count %}
+    <div>
+        <button type="button" class="topbar-quick-add" id="branchAssignTargetsBtn">
+            <i class="bi bi-bullseye"></i> Assign targets
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+{% if branch %}
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-bullseye me-2 text-success"></i>Edit the <strong>branch monthly target</strong>, pick a <strong>split type</strong>, then apply or set each staff share manually at <strong>{{ branch.name }}</strong>.</p>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-blue w-100 h-100">
+            <div class="stat-label">Branch target</div>
+            <div class="stat-value">{{ target_summary.branch_target_amount }}</div>
+            <div class="stat-sub">This month</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-cyan w-100 h-100">
+            <div class="stat-label">Assigned</div>
+            <div class="stat-value">{{ target_summary.assigned_total }}</div>
+            <div class="stat-sub">Split to staff</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-amber w-100 h-100">
+            <div class="stat-label">Remaining</div>
+            <div class="stat-value">{{ target_summary.remaining }}</div>
+            <div class="stat-sub">Not yet assigned</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-emerald w-100 h-100">
+            <div class="stat-label">Achieved</div>
+            <div class="stat-value">{{ target_summary.achieved_total }}</div>
+            <div class="stat-sub">Team total</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 dashboard-table" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Phone</th>
+                    <th>Target</th>
+                    <th>Achieved</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in target_summary.staff_rows %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-xs lead-avatar">{{ row.staff.initials }}</div>
+                            <span class="fw-semibold">{{ row.staff.display_name }}</span>
+                        </div>
+                    </td>
+                    <td class="small">@{{ row.staff.user.get_username }}</td>
+                    <td class="small">{{ row.staff.phone|default:"—" }}</td>
+                    <td class="fw-semibold">{{ row.target_amount }}</td>
+                    <td>{{ row.achieved_amount }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:8px;min-width:72px">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    style="width:{% if row.achievement_percent > 100 %}100{% else %}{{ row.achievement_percent }}{% endif %}%"></div>
+                            </div>
+                            <span class="small text-muted">{{ row.achievement_percent }}%</span>
+                        </div>
+                    </td>
+                    <td><span class="badge-status badge-won">Active</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No staff assigned to this branch.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if target_summary.staff_count %}
+<div class="modal fade" id="branchAssignTargetsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="branchAssignTargetsForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Assign branch targets</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Edit the branch target for this month, choose a split type, then apply or adjust each staff amount before saving.</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="branchTargetAmount">Branch monthly target *</label>
+                            <input type="number" name="branch_target_amount" id="branchTargetAmount" class="form-control"
+                                min="0" step="0.01" required
+                                value="{{ target_summary.branch_target_amount }}" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label" for="branchSplitType">Split type</label>
+                            <select id="branchSplitType" class="form-select">
+                                <option value="equal">Split equally</option>
+                                <option value="ratio">Keep current ratio</option>
+                                <option value="manual">Manual — edit each staff</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-light" id="branchApplySplitBtn">
+                            <i class="bi bi-distribute-vertical me-1"></i> Apply split
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm align-self-center" id="branchClearStaffTargetsBtn">
+                            Clear staff amounts
+                        </button>
+                    </div>
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="row g-2 small">
+                            <div class="col-4"><span class="text-muted">Assigned</span><div class="fw-semibold" id="branchAssignedTotal">0</div></div>
+                            <div class="col-4"><span class="text-muted">Remaining</span><div class="fw-semibold" id="branchRemainingTotal">0</div></div>
+                            <div class="col-4"><span class="text-muted">Staff</span><div class="fw-semibold">{{ target_summary.staff_count }}</div></div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="font-size:13px">
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th style="width:180px">Target amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in target_summary.staff_rows %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ row.staff.display_name }}</div>
+                                        <div class="text-muted small">@{{ row.staff.user.get_username }}</div>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="staff_target_{{ row.staff.pk }}"
+                                            class="form-control form-control-sm branch-staff-target-input"
+                                            min="0" step="0.01" value="{{ row.target_amount }}" />
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save targets</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="section-card">
+    <p class="text-center text-muted py-4 mb-0">Branch profile not found.</p>
+</div>
+{% endif %}
+
+{% if branch and target_summary.staff_count %}
+<script>
+function parseBranchAmount(value) {
+    const num = parseFloat(value);
+    return Number.isFinite(num) && num >= 0 ? num : 0;
+}
+
+function getBranchStaffInputs() {
+    return Array.from(document.querySelectorAll('.branch-staff-target-input'));
+}
+
+function updateBranchTargetTotals() {
+    const branchInput = document.getElementById('branchTargetAmount');
+    const assignedEl = document.getElementById('branchAssignedTotal');
+    const remainingEl = document.getElementById('branchRemainingTotal');
+    if (!branchInput || !assignedEl || !remainingEl) return;
+    const branchTotal = parseBranchAmount(branchInput.value);
+    let assigned = 0;
+    getBranchStaffInputs().forEach((input) => {
+        assigned += parseBranchAmount(input.value);
+    });
+    const remaining = Math.max(branchTotal - assigned, 0);
+    assignedEl.textContent = assigned.toFixed(2);
+    remainingEl.textContent = remaining.toFixed(2);
+    remainingEl.classList.toggle('text-danger', assigned > branchTotal);
+    assignedEl.classList.toggle('text-danger', assigned > branchTotal);
+}
+
+function splitBranchTargetEqually() {
+    const branchInput = document.getElementById('branchTargetAmount');
+    const inputs = getBranchStaffInputs();
+    if (!branchInput || !inputs.length) return;
+    const branchTotal = parseBranchAmount(branchInput.value);
+    const base = Math.floor((branchTotal / inputs.length) * 100) / 100;
+    let assigned = 0;
+    inputs.forEach((input, index) => {
+        if (index === inputs.length - 1) {
+            input.value = (branchTotal - assigned).toFixed(2);
+        } else {
+            input.value = base.toFixed(2);
+            assigned += base;
+        }
+    });
+    updateBranchTargetTotals();
+}
+
+function splitBranchTargetByRatio() {
+    const branchInput = document.getElementById('branchTargetAmount');
+    const inputs = getBranchStaffInputs();
+    if (!branchInput || !inputs.length) return;
+    const branchTotal = parseBranchAmount(branchInput.value);
+    const current = inputs.map((input) => parseBranchAmount(input.value));
+    const currentTotal = current.reduce((sum, value) => sum + value, 0);
+    if (!currentTotal) {
+        splitBranchTargetEqually();
+        return;
+    }
+    let assigned = 0;
+    inputs.forEach((input, index) => {
+        if (index === inputs.length - 1) {
+            input.value = (branchTotal - assigned).toFixed(2);
+        } else {
+            const share = Math.floor((branchTotal * (current[index] / currentTotal)) * 100) / 100;
+            input.value = share.toFixed(2);
+            assigned += share;
+        }
+    });
+    updateBranchTargetTotals();
+}
+
+function clearBranchStaffTargets() {
+    getBranchStaffInputs().forEach((input) => {
+        input.value = '0.00';
+    });
+    updateBranchTargetTotals();
+}
+
+function applyBranchTargetSplit() {
+    const splitType = document.getElementById('branchSplitType')?.value || 'equal';
+    if (splitType === 'equal') {
+        splitBranchTargetEqually();
+    } else if (splitType === 'ratio') {
+        splitBranchTargetByRatio();
+    }
+}
+
+document.getElementById('branchAssignTargetsBtn')?.addEventListener('click', () => {
+    updateBranchTargetTotals();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('branchAssignTargetsModal')).show();
+});
+document.getElementById('branchApplySplitBtn')?.addEventListener('click', applyBranchTargetSplit);
+document.getElementById('branchClearStaffTargetsBtn')?.addEventListener('click', clearBranchStaffTargets);
+document.getElementById('branchTargetAmount')?.addEventListener('input', updateBranchTargetTotals);
+document.getElementById('branchSplitType')?.addEventListener('change', () => {
+    const splitType = document.getElementById('branchSplitType')?.value;
+    if (splitType !== 'manual') {
+        applyBranchTargetSplit();
+    }
+});
+getBranchStaffInputs().forEach((input) => {
+    input.addEventListener('input', updateBranchTargetTotals);
+});
+{% if show_target_modal %}
+document.addEventListener('DOMContentLoaded', () => {
+    updateBranchTargetTotals();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('branchAssignTargetsModal')).show();
+});
+{% endif %}
+</script>
+{% endif %}

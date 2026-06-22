@@ -1,0 +1,47 @@
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label branch-form-label" for="{{ staff_form.profile_picture.id_for_label }}">Profile picture</label>
+        {{ staff_form.profile_picture }}
+        {% if staff_form.profile_picture.errors %}<div class="text-danger small mt-1">{{ staff_form.profile_picture.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.username.id_for_label }}">Username *</label>
+        {{ staff_form.username }}
+        {% if staff_form.username.errors %}<div class="text-danger small mt-1">{{ staff_form.username.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.email.id_for_label }}">Email *</label>
+        {{ staff_form.email }}
+        {% if staff_form.email.errors %}<div class="text-danger small mt-1">{{ staff_form.email.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.phone.id_for_label }}">Mobile number *</label>
+        {{ staff_form.phone }}
+        {% if staff_form.phone.errors %}<div class="text-danger small mt-1">{{ staff_form.phone.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.join_date.id_for_label }}">Join date *</label>
+        {{ staff_form.join_date }}
+        {% if staff_form.join_date.errors %}<div class="text-danger small mt-1">{{ staff_form.join_date.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.branch.id_for_label }}">Branch</label>
+        {{ staff_form.branch }}
+        {% if staff_form.branch.errors %}<div class="text-danger small mt-1">{{ staff_form.branch.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.date_of_birth.id_for_label }}">Date of birth *</label>
+        {{ staff_form.date_of_birth }}
+        {% if staff_form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ staff_form.date_of_birth.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.password1.id_for_label }}">Password *</label>
+        {{ staff_form.password1 }}
+        {% if staff_form.password1.errors %}<div class="text-danger small mt-1">{{ staff_form.password1.errors.0 }}</div>{% endif %}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label branch-form-label" for="{{ staff_form.password2.id_for_label }}">Confirm password *</label>
+        {{ staff_form.password2 }}
+        {% if staff_form.password2.errors %}<div class="text-danger small mt-1">{{ staff_form.password2.errors.0 }}</div>{% endif %}
+    </div>
+</div>

@@ -1,0 +1,57 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Document collection</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Documents</span>
+        </div>
+    </div>
+    <div>
+        <a href="{% url 'followup:lead_list' %}" class="topbar-quick-add text-decoration-none" style="background:var(--surface-2);color:var(--text)">
+            <i class="bi bi-telephone-fill"></i> Follow-up leads
+        </a>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0">Collect <strong>passport</strong>, <strong>certificates</strong>, and <strong>photos</strong>. When workflow status is <strong>Converted</strong> on the Leads page, the customer automatically goes to branch roadmap and back office case processing.</p>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Lead</th>
+                    <th>Customer</th>
+                    <th>Passport</th>
+                    <th>Certificates</th>
+                    <th>Photos</th>
+                    <th>Case</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr>
+                    <td class="text-muted small">{{ lead.display_id }}</td>
+                    <td class="fw-semibold">{{ lead.name }}</td>
+                    <td>{% if lead.doc_passport_collected %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if lead.doc_certificates_collected %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if lead.doc_photos_collected %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td class="small">
+                        {% if lead.cases.exists %}{{ lead.cases.first.case_ref }}{% else %}<span class="text-muted">Not opened</span>{% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'followup:lead_list' %}" class="btn btn-sm btn-light">Update on leads page</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No verified leads yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

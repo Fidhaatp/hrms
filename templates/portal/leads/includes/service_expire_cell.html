@@ -1,0 +1,22 @@
+<button type="button"
+    class="service-expire-chip service-expire-chip--{{ lead.service_expire_chip_style }} followup-expire-btn"
+    title="{% if lead.service_expire_date %}Update service expiry{% else %}Set service expiry{% endif %}"
+    data-name="{{ lead.name|escapejs }}"
+    data-service-expire-date="{% if lead.service_expire_date %}{{ lead.service_expire_date|date:'Y-m-d' }}{% endif %}"
+    data-url="{% url 'followup:lead_expire_date' lead.pk %}">
+    {% if lead.service_expire_date %}
+    <span class="service-expire-chip__icon"><i class="bi bi-calendar-event-fill"></i></span>
+    <span class="service-expire-chip__body">
+        <span class="service-expire-chip__date">{{ lead.service_expire_date|date:"d M Y" }}</span>
+        {% if lead.service_expire_chip_hint %}
+        <span class="service-expire-chip__hint">{{ lead.service_expire_chip_hint }}</span>
+        {% endif %}
+    </span>
+    {% else %}
+    <span class="service-expire-chip__icon"><i class="bi bi-calendar-plus"></i></span>
+    <span class="service-expire-chip__body">
+        <span class="service-expire-chip__date">Set date</span>
+        <span class="service-expire-chip__hint">Not scheduled</span>
+    </span>
+    {% endif %}
+</button>

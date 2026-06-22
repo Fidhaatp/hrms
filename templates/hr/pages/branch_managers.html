@@ -1,0 +1,69 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Branch Manager Profiles</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Branch Managers</span>
+        </div>
+    </div>
+    <div>
+        <button class="topbar-quick-add" type="button" onclick="showAddManagerModal()">
+            <i class="bi bi-person-plus-fill"></i> Add Branch Manager
+        </button>
+    </div>
+</div>
+
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} mb-2 py-2 px-3" style="font-size:13px" role="alert">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-card">
+    <div class="filter-bar">
+        <input type="text" class="filter-input" placeholder="Search managers…" id="branchManagerSearch" />
+        <select class="filter-select" id="branchManagerStatusFilter">
+            <option value="all" selected>All</option>
+            <option value="active">Active only</option>
+            <option value="deactivated">Deactivated only</option>
+        </select>
+        <select class="filter-select" id="branchManagerBranchFilter">
+            <option value="">All Branches</option>
+            {% for mgr in branch_managers %}
+            <option value="{{ mgr.branch.name }}">{{ mgr.branch.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table id="branchManagersTable" class="table table-hover" style="width:100%;font-size:13px">
+            <thead>
+                <tr>
+                    <th>Manager</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Branch</th>
+                    <th>Join date</th>
+                    <th>Status</th>
+                    <th style="width:130px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% include "hr/includes/branch_manager_rows.html" %}
+            </tbody>
+        </table>
+        {% if not branch_managers %}
+        <p class="text-center text-muted py-4 mb-0">No branch managers yet. Click <strong>Add Branch Manager</strong> to create one.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% include "hr/includes/branch_manager_modal.html" %}
+{% include "hr/includes/team_view_modal.html" with modal_id="viewBranchManagerModal" title="Branch Manager Profile" %}
+{% if edit_manager %}{% url 'hr:branch_manager_edit' edit_manager.pk as manager_edit_url %}{% endif %}
+{% include "hr/includes/team_edit_modal.html" with modal_id="editBranchManagerModal" form_id="editBranchManagerForm" title="Edit Branch Manager" edit_member=edit_manager edit_form=manager_edit_form edit_url=manager_edit_url|default:"#" show_dob=False username_display_id="edit_mgr_username" branch_field_id="edit_mgr_branch" picture_field_id="edit_mgr_picture" email_field_id="edit_mgr_email" phone_field_id="edit_mgr_phone" join_field_id="edit_mgr_join" dob_field_id="" pass1_field_id="edit_mgr_pass1" pass2_field_id="edit_mgr_pass2" %}
+{% include "hr/includes/branch_status_form.html" %}

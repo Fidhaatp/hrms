@@ -1,0 +1,68 @@
+{% with tb=target_breakdown %}
+<div class="target-breakdown-panel">
+    <div class="target-breakdown-panel__header mb-3">
+        <div>
+            <div class="target-breakdown-panel__title">
+                <i class="bi bi-bullseye me-2"></i>{{ title|default:"This month target" }}
+            </div>
+            <div class="target-breakdown-panel__subtitle">{{ tb.period_label }}</div>
+        </div>
+        <div class="target-breakdown-panel__percent {% if tb.on_track %}is-on-track{% else %}is-behind{% endif %}">
+            {{ tb.achievement_percent }}%
+        </div>
+    </div>
+
+    <div class="target-breakdown-panel__progress-wrap mb-3">
+        <div class="progress target-breakdown-panel__progress">
+            <div class="progress-bar {% if tb.on_track %}bg-success{% else %}bg-warning{% endif %}"
+                role="progressbar"
+                style="width:{% if tb.achievement_percent > 100 %}100{% else %}{{ tb.achievement_percent }}{% endif %}%"></div>
+        </div>
+        <div class="target-breakdown-panel__progress-meta">
+            <span>Achieved <strong>{{ tb.achieved_amount }}</strong></span>
+            <span>Goal <strong>{{ tb.monthly_target }}</strong></span>
+        </div>
+    </div>
+
+    <div class="row g-2 g-md-3 mb-0">
+        <div class="col-md-4">
+            <div class="target-pace-card target-pace-card--monthly">
+                <div class="target-pace-card__icon"><i class="bi bi-calendar3"></i></div>
+                <div class="target-pace-card__label">Monthly</div>
+                <div class="target-pace-card__value">{{ tb.monthly_target }}</div>
+                <div class="target-pace-card__hint">{{ tb.remaining_amount }} left</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="target-pace-card target-pace-card--weekly">
+                <div class="target-pace-card__icon"><i class="bi bi-calendar-week"></i></div>
+                <div class="target-pace-card__label">Weekly pace</div>
+                <div class="target-pace-card__value">{{ tb.weekly_target }}</div>
+                <div class="target-pace-card__hint">Week {{ tb.week_index }} of {{ tb.weeks_in_month }} · need {{ tb.weekly_needed }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="target-pace-card target-pace-card--daily">
+                <div class="target-pace-card__icon"><i class="bi bi-sunrise"></i></div>
+                <div class="target-pace-card__label">Daily pace</div>
+                <div class="target-pace-card__value">{{ tb.daily_target }}</div>
+                <div class="target-pace-card__hint">Day {{ tb.day_of_month }}/{{ tb.days_in_month }} · need {{ tb.daily_needed }}/day</div>
+            </div>
+        </div>
+    </div>
+
+    {% if show_track_note %}
+    <p class="target-breakdown-panel__note mb-0 mt-3">
+        {% if tb.monthly_target %}
+        {% if tb.on_track %}
+        <i class="bi bi-check-circle-fill text-success me-1"></i>On track — expected {{ tb.expected_by_today }} by today.
+        {% else %}
+        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Behind pace — expected {{ tb.expected_by_today }} by today.
+        {% endif %}
+        {% else %}
+        <i class="bi bi-info-circle me-1"></i>No monthly target assigned yet. Your branch manager will set it on the Staff page.
+        {% endif %}
+    </p>
+    {% endif %}
+</div>
+{% endwith %}

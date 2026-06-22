@@ -1,0 +1,83 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Centralized Staff & Branch Database</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Org Database</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Staff</div><div class="h4 mb-0">{{ staff_members|length }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Follow-up</div><div class="h4 mb-0">{{ followup_members|length }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Back Office</div><div class="h4 mb-0">{{ backoffice_members|length }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Branch Managers</div><div class="h4 mb-0">{{ branch_managers|length }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Finance</div><div class="h4 mb-0">{{ finance_members|length }}</div></div></div>
+    <div class="col-md-3"><div class="section-card p-3"><div class="text-muted small">Marketing</div><div class="h4 mb-0">{{ marketing_members|length }}</div></div></div>
+</div>
+
+<div class="section-card mb-3">
+    <div class="section-card-title mb-2">Staff / Teams</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr><th>Role</th><th>Name</th><th>Username</th><th>Branch</th><th>Phone</th><th>Email</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for member in staff_members %}
+                <tr><td>Staff</td><td>{{ member.display_name }}</td><td>{{ member.username }}</td><td>{{ member.branch.name|default:"—" }}</td><td>{{ member.phone }}</td><td>{{ member.email }}</td><td>{% if member.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% endfor %}
+                {% for member in followup_members %}
+                <tr><td>Follow-up</td><td>{{ member.display_name }}</td><td>{{ member.username }}</td><td>{{ member.branch.name|default:"—" }}</td><td>{{ member.phone }}</td><td>{{ member.email }}</td><td>{% if member.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% endfor %}
+                {% for member in backoffice_members %}
+                <tr><td>Back Office</td><td>{{ member.display_name }}</td><td>{{ member.username }}</td><td>{{ member.branch.name|default:"—" }}</td><td>{{ member.phone }}</td><td>{{ member.email }}</td><td>{% if member.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% endfor %}
+                {% for member in finance_members %}
+                <tr><td>Finance</td><td>{{ member.display_name }}</td><td>{{ member.username }}</td><td>—</td><td>{{ member.phone }}</td><td>{{ member.email }}</td><td>{% if member.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% endfor %}
+                {% for member in marketing_members %}
+                <tr><td>Marketing</td><td>{{ member.display_name }}</td><td>{{ member.username }}</td><td>—</td><td>{{ member.phone }}</td><td>{{ member.email }}</td><td>{% if member.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% endfor %}
+                {% if not staff_members and not followup_members and not backoffice_members and not finance_members and not marketing_members %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No team members found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section-card mb-3">
+    <div class="section-card-title mb-2">Branch Managers</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead><tr><th>Name</th><th>Branch</th><th>Username</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for manager in branch_managers %}
+                <tr><td>{{ manager.display_name }}</td><td>{{ manager.branch.name }}</td><td>{{ manager.username }}</td><td>{{ manager.phone }}</td><td>{{ manager.email }}</td><td>{% if manager.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No branch managers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-title mb-2">Branches</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead><tr><th>Name</th><th>City</th><th>State</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for branch in branches %}
+                <tr><td>{{ branch.name }}</td><td>{{ branch.city }}</td><td>{{ branch.state }}</td><td>{{ branch.phone }}</td><td>{{ branch.email }}</td><td>{% if branch.is_active %}<span class="badge-status badge-active">Active</span>{% else %}<span class="badge-status badge-closed">Inactive</span>{% endif %}</td></tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No branches found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

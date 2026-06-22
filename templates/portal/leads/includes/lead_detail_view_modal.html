@@ -1,0 +1,100 @@
+<div class="modal fade" id="leadDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title">Lead details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3"><strong id="leadDetailName">—</strong> · <span id="leadDetailId"></span></p>
+                <div class="row g-3 small mb-3" id="leadDetailFields"></div>
+                <div class="d-flex flex-wrap gap-2 mb-3" id="leadDetailZipAction"></div>
+                <p class="small fw-semibold mb-2">Documents</p>
+                <ul class="list-group list-group-flush small mb-0" id="leadDetailFiles"></ul>
+                <p class="text-muted small mb-0 mt-2 d-none" id="leadDetailFilesEmpty">No files uploaded yet.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('leadDetailModal');
+    if (!modal) return;
+
+    const fieldsEl = document.getElementById('leadDetailFields');
+    const filesEl = document.getElementById('leadDetailFiles');
+    const filesEmpty = document.getElementById('leadDetailFilesEmpty');
+    const zipAction = document.getElementById('leadDetailZipAction');
+
+    function field(label, value) {
+        if (!value) return '';
+        return `<div class="col-md-6"><span class="text-muted">${label}</span><div class="fw-semibold">${value}</div></div>`;
+    }
+
+    document.querySelectorAll('.lead-view-detail-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            let detail = {};
+            try {
+                detail = JSON.parse(btn.dataset.detail || '{}');
+            } catch (e) { detail = {}; }
+
+            document.getElementById('leadDetailName').textContent = detail.name || '—';
+            document.getElementById('leadDetailId').textContent = detail.id || '';
+
+            fieldsEl.innerHTML = [
+                field('Phone', detail.phone),
+                field('Email', detail.email),
+                field('Type', detail.type),
+                field('Service', detail.service),
+                field('Source', detail.source),
+                field('Branch', detail.branch),
+                field('Staff', detail.staff),
+                field('Status', detail.status),
+                field('Takhlees ID', detail.takhlees_id),
+                field('Passport No', detail.passport_no),
+                field('EID No', detail.eid_no),
+                field('Next follow-up', detail.next_followup),
+                field('Service expire', detail.service_expire),
+                field('Sent to follow-up', detail.sent_to_followup),
+                field('Staff notes', detail.notes),
+                field('Document notes', detail.doc_notes),
+            ].join('');
+
+            zipAction.innerHTML = '';
+            if (detail.zip_url) {
+                const zipBtn = document.createElement('button');
+                zipBtn.type = 'button';
+                zipBtn.className = 'btn btn-sm btn-light lead-files-list-btn';
+                zipBtn.dataset.name = detail.name || '';
+                zipBtn.dataset.zipCheck = JSON.stringify({
+                    files: (detail.files || [])
+                        .filter((f) => f.type === 'From staff ZIP')
+                        .map((f) => ({ name: f.label, url: f.url })),
+                });
+                zipBtn.innerHTML = '<i class="bi bi-folder2-open me-1"></i>View ZIP files';
+                zipAction.appendChild(zipBtn);
+            }
+
+            const files = detail.files || [];
+            filesEl.innerHTML = '';
+            if (!files.length) {
+                filesEmpty.classList.remove('d-none');
+            } else {
+                filesEmpty.classList.add('d-none');
+                files.forEach((d) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
+                    li.innerHTML = `<span><i class="bi bi-file-earmark me-1"></i>${d.label} <span class="text-muted">· ${d.type || ''}${d.type && d.date ? ' · ' : ''}${d.date || ''}</span></span><button type="button" class="btn btn-sm btn-light lead-file-view-btn" data-url="${d.url}" data-label="${d.label}">View</button>`;
+                    filesEl.appendChild(li);
+                });
+            }
+
+            new bootstrap.Modal(modal).show();
+        });
+    });
+})();
+</script>

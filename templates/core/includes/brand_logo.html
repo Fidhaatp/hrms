@@ -1,0 +1,17 @@
+{% load static %}
+<a href="{{ brand_url|default:'#' }}" class="d-flex align-items-center gap-3 text-decoration-none sidebar-brand-link">
+    <div class="brand-logo-wrap" aria-hidden="true">
+        <img
+            src="{% static 'hr/images/takhlees-logo.png' %}"
+            alt=""
+            class="brand-logo"
+            width="40"
+            height="40"
+            loading="eager"
+        />
+    </div>
+    <div class="brand-text">
+        <span class="brand-name">TAKHLEES</span>
+        <span class="brand-sub">{{ brand_subtitle|default:"HRMS Portal" }}</span>
+    </div>
+</a>

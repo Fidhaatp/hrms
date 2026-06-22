@@ -1,0 +1,48 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Leave Approvals</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'branch:index' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Leave Approvals</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-info-circle me-2"></i>Workflow: <strong>Employee</strong> → <strong>Branch Manager (you)</strong> → <strong>HR</strong> → Approved</p>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Decision</th></tr>
+            </thead>
+            <tbody>
+                {% for req in pending_requests %}
+                <tr>
+                    <td>{{ req.user.get_username }}</td>
+                    <td>{{ req.leave_type.name }} / {{ req.leave_category.name }}</td>
+                    <td>{{ req.start_date }} – {{ req.end_date }}</td>
+                    <td>{{ req.days_count }}</td>
+                    <td>
+                        <form method="post" action="{% url 'branch:leave_approve' req.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="note" value="" />
+                            <button class="btn btn-sm btn-success" type="submit">Approve → HR</button>
+                        </form>
+                        <form method="post" action="{% url 'branch:leave_reject' req.pk %}" class="d-inline ms-1">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-danger" type="submit">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No leave requests waiting for branch manager approval.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

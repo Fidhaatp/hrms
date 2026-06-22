@@ -1,0 +1,34 @@
+{% load profile_tags %}
+<nav id="sidebar">
+    <div class="sidebar-brand">
+        {% url 'admin_portal:dashboard' as dashboard_url %}
+        {% include "core/includes/brand_logo.html" with brand_url=dashboard_url brand_subtitle="Admin Portal" %}
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav-item-group">
+            {% for item in portal_nav %}
+            <li>
+                <a class="nav-link-item{% if active_nav == item.nav_key %} active{% endif %}" href="{% url item.url_name %}">
+                    <span class="nav-icon"><i class="bi {{ item.icon }}"></i></span>
+                    <span class="nav-link-text">{{ item.label }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="sidebar-footer">
+        {% if portal_profile_url_name %}
+        <a href="{% url portal_profile_url_name %}" class="sidebar-user text-decoration-none mb-2">
+            {% profile_avatar request.user size="sm" extra_class="hr-user-avatar" %}
+            <div class="sidebar-user-info">
+                <div class="user-name">{{ portal_display_name }}</div>
+                <div class="user-role">{{ portal_role }}</div>
+            </div>
+        </a>
+        {% endif %}
+        <a href="{% url 'core:logout' %}" class="nav-link-item py-2" style="font-size:12px">
+            <span class="nav-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span class="nav-link-text">Sign out</span>
+        </a>
+    </div>
+</nav>

@@ -1,0 +1,89 @@
+<div class="portal-dashboard">
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Admin Dashboard</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <span class="active">Dashboard</span>
+        </div>
+    </div>
+</div>
+
+<p class="dashboard-section-label">Organization overview</p>
+<div class="row g-3 mb-4 dashboard-equal-row">
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-blue w-100">
+            <div class="stat-label">Total employees</div>
+            <div class="stat-value">{{ metrics.employees }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-cyan w-100">
+            <div class="stat-label">Total branches</div>
+            <div class="stat-value">{{ metrics.branches }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-emerald w-100">
+            <div class="stat-label">Revenue (targets)</div>
+            <div class="stat-value">{{ metrics.revenue }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-amber w-100">
+            <div class="stat-label">Collections</div>
+            <div class="stat-value">{{ metrics.collections }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4 dashboard-equal-row">
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-amber w-100">
+            <div class="stat-label">Pending cases</div>
+            <div class="stat-value">{{ operations.pending_cases }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-emerald w-100">
+            <div class="stat-label">Completed cases</div>
+            <div class="stat-value">{{ operations.completed_cases }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-blue w-100">
+            <div class="stat-label">Attendance today</div>
+            <div class="stat-value">{{ metrics.attendance_today }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 d-flex">
+        <div class="stat-card card-cyan w-100">
+            <div class="stat-label">Leave pending HR</div>
+            <div class="stat-value">{{ metrics.leave_pending_hr }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card p-3">
+            <div class="section-card-title mb-2">Employee of the month</div>
+            {% if awards.employee_of_month %}
+            <p class="mb-0 fw-semibold">{{ awards.employee_of_month.winner_user.get_full_name|default:awards.employee_of_month.winner_user.username }}</p>
+            {% else %}
+            <p class="text-muted small mb-0">Not set yet</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="section-card p-3">
+            <div class="section-card-title mb-2">Branch of the month</div>
+            {% if awards.branch_of_month %}
+            <p class="mb-0 fw-semibold">{{ awards.branch_of_month.winner_branch.name }}</p>
+            {% else %}
+            <p class="text-muted small mb-0">Not set yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>

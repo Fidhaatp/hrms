@@ -1,0 +1,2 @@
+{% load team_docs_tags %}
+{% team_documents_json user branch as documents_json %}{% if documents_json %} data-documents="{{ documents_json }}"{% endif %}

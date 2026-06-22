@@ -1,0 +1,8 @@
+{% if lead.active_procedure_status.stage == "—" %}
+<span class="text-muted">—</span>
+{% else %}
+<div class="d-inline-flex align-items-center flex-wrap gap-2">
+    <span class="text-muted small">{{ lead.active_procedure_status.stage }}</span>
+    <span class="badge-status badge-{{ lead.active_procedure_status.badge }}">{{ lead.active_procedure_status.label }}</span>
+</div>
+{% endif %}

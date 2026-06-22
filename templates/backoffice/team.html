@@ -1,0 +1,101 @@
+{% load profile_tags %}
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Back office team</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Team</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-0"><i class="bi bi-person-badge-fill me-2 text-success"></i>All back office members across branches — <strong>{{ team_active_count }}</strong> active of <strong>{{ team_total_count }}</strong> total.</p>
+</div>
+
+<div class="section-card">
+    <div class="filter-bar mb-0">
+        <input type="text" class="filter-input" placeholder="Search team by name, username, branch…" id="backofficeTeamSearch" />
+        <select class="filter-select" id="backofficeTeamStatusFilter">
+            <option value="all" selected>All</option>
+            <option value="active">Active only</option>
+            <option value="deactivated">Deactivated only</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table id="backofficeTeamTable" class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Branch</th>
+                    <th>Role</th>
+                    <th>Mobile</th>
+                    <th>Join date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in team_members %}
+                <tr data-status="{% if member.is_active %}active{% else %}deactivated{% endif %}" class="{% if not member.is_active %}table-secondary{% endif %}">
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% profile_avatar member.user size="xs" extra_class="hr-user-avatar" %}
+                            <span class="fw-semibold">{{ member.display_name }}</span>
+                        </div>
+                    </td>
+                    <td><span class="text-muted">@{{ member.username }}</span></td>
+                    <td class="small">{{ member.email }}</td>
+                    <td class="fw-semibold small">{{ member.branch.name|default:"—" }}</td>
+                    <td>
+                        {% if member.is_backoffice_head %}
+                        <span class="badge-status badge-won">Head</span>
+                        {% else %}
+                        <span class="badge-status badge-pending">Team</span>
+                        {% endif %}
+                    </td>
+                    <td class="small">{{ member.phone }}</td>
+                    <td class="text-muted small">{{ member.join_date|date:"d M Y" }}</td>
+                    <td>
+                        {% if member.is_active %}
+                        <span class="badge-status badge-won">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-closed">Deactivated</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No back office team members yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function () {
+    const search = document.getElementById('backofficeTeamSearch');
+    const statusFilter = document.getElementById('backofficeTeamStatusFilter');
+    const rows = () => Array.from(document.querySelectorAll('#backofficeTeamTable tbody tr[data-status]'));
+
+    function applyFilters() {
+        const q = (search?.value || '').trim().toLowerCase();
+        const status = statusFilter?.value || 'all';
+        rows().forEach((row) => {
+            const text = row.textContent.toLowerCase();
+            const rowStatus = row.dataset.status;
+            const matchSearch = !q || text.includes(q);
+            const matchStatus = status === 'all' || rowStatus === status;
+            row.classList.toggle('d-none', !(matchSearch && matchStatus));
+        });
+    }
+
+    search?.addEventListener('input', applyFilters);
+    statusFilter?.addEventListener('change', applyFilters);
+})();
+</script>

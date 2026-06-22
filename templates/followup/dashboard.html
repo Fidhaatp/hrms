@@ -1,0 +1,182 @@
+<div class="dashboard-page portal-dashboard">
+    <script type="application/json" id="hr-dashboard-chart-data">{{ dashboard_charts_json|safe }}</script>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Follow-up Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'followup:lead_list' %}" class="topbar-quick-add text-decoration-none">
+                <i class="bi bi-list-ul"></i> Active queue
+            </a>
+        </div>
+    </div>
+
+    <div class="portal-dashboard-hero portal-dashboard-hero--teal mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-telephone-forward me-1"></i> Follow-up team</div>
+                <h2 class="portal-dashboard-hero__title">Hello, {{ portal_display_name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">Manage procedures, customer status, and service expiry for leads sent from staff — all branches.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Quick links</div>
+                    <div class="portal-dashboard-hero__links">
+                        <a href="{% url 'followup:lead_list' %}" class="portal-dashboard-hero__link-btn">
+                            <i class="bi bi-list-ul"></i><span>Follow-up leads</span>
+                        </a>
+                        <a href="{% url 'followup:all_leads' %}" class="portal-dashboard-hero__link-btn">
+                            <i class="bi bi-check-circle"></i><span>Completed leads</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Follow-up queue (all branches)</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'followup:lead_list' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-inbox-fill"></i></div>
+                </div>
+                <div class="stat-label">Staff converted</div>
+                <div class="stat-value">{{ lead_stats.active_queue }}</div>
+                <div class="stat-sub">All branches on follow-up page</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+                </div>
+                <div class="stat-label">New this week</div>
+                <div class="stat-value">{{ lead_stats.new_this_week }}</div>
+                <div class="stat-sub">Sent from staff</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+                <div class="stat-label">Due today</div>
+                <div class="stat-value">{{ lead_stats.due_today }}</div>
+                <div class="stat-sub">Scheduled follow-ups</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top">
+                    <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
+                </div>
+                <div class="stat-label">Approved</div>
+                <div class="stat-value">{{ lead_stats.approved_this_week }}</div>
+                <div class="stat-sub">Sent to back office this week</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 dashboard-equal-row dashboard-chart-row">
+        <div class="col-lg-8 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Follow-up activity</div>
+                        <div class="section-card-subtitle">{{ chart_subtitle|default:"Last 6 months" }}</div>
+                    </div>
+                </div>
+                <div class="chart-wrap flex-grow-1">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Lead sources</div>
+                        <div class="section-card-subtitle">Active queue</div>
+                    </div>
+                </div>
+                <div class="chart-wrap chart-wrap--donut flex-grow-1">
+                    <canvas id="leadSourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <div class="col-lg-8">
+            <div class="section-card dashboard-panel">
+                <div class="section-card-header d-flex justify-content-between align-items-center">
+                    <div class="section-card-title">Active leads</div>
+                    <a href="{% url 'followup:lead_list' %}" class="small text-decoration-none">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Name</th>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>Received</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in recent_leads %}
+                            <tr>
+                                <td><span class="text-muted small">{{ lead.display_id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+                                        <span class="fw-semibold">{{ lead.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ lead.branch.name|default:"—" }}</td>
+                                <td><span class="badge-status badge-{{ lead.team_status_badge }}">{{ lead.followup_status.name|default:"New" }}</span></td>
+                                <td class="text-muted small">{{ lead.sent_to_followup_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-muted text-center py-4">No leads in the follow-up queue.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div class="section-card-title">Recent activity</div>
+                </div>
+                <div class="dashboard-activity-list flex-grow-1">
+                    {% for item in recent_activity %}
+                    <div class="activity-item{% if forloop.last %} mb-0{% endif %}">
+                        <div class="activity-icon activity-icon--{{ item.tone }}"><i class="bi bi-{{ item.icon }}-fill"></i></div>
+                        <div class="activity-item__body">
+                            <div class="activity-text">{{ item.text }}</div>
+                            <div class="activity-time">{{ item.time_ago }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0 py-3">No recent follow-up activity.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

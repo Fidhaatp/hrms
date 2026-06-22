@@ -1,0 +1,38 @@
+<div class="dashboard-page portal-dashboard">
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Branch Accountant Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Home
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+    </div>
+
+    {% if branch %}
+    <div class="section-card mb-3"><div class="section-card-title">{{ branch.name }}</div></div>
+    {% endif %}
+
+    <p class="dashboard-section-label">Financial summary</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="stat-label">Collections</div>
+                <div class="stat-value">{{ metrics.collections }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="stat-label">Revenue</div>
+                <div class="stat-value">{{ metrics.revenue }}</div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="stat-label">Conversion</div>
+                <div class="stat-value">{{ metrics.conversion_rate }}%</div>
+            </div>
+        </div>
+    </div>
+</div>

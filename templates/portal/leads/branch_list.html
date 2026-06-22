@@ -1,0 +1,59 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Branch lead roadmap</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Leads</span>
+        </div>
+    </div>
+</div>
+
+{% if branch %}
+<div class="section-card portal-help-banner mb-3">
+    <div class="section-card-title mb-1"><i class="bi bi-geo-alt me-2" style="color:#E01E26"></i>{{ branch.name }}</div>
+    <p class="mb-0">Leads sent here by follow-up — full workflow roadmap below each lead.</p>
+</div>
+
+{% for lead in leads %}
+<div class="section-card mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <span class="text-muted small">{{ lead.display_id }}</span>
+            <h6 class="fw-semibold mb-1">{{ lead.name }} — {{ lead.get_company_display }}</h6>
+            <p class="text-muted small mb-0">{{ lead.phone }}{% if lead.email %} · {{ lead.email }}{% endif %}</p>
+            {% include "portal/includes/lead_identity.html" %}
+        </div>
+        <div class="text-end">
+            <span class="badge-status badge-{{ lead.team_status_badge }}">{{ lead.team_status_display }}</span>
+            <div class="text-muted small mt-1">Staff: {{ lead.created_by.get_username }}</div>
+        </div>
+    </div>
+
+    <div class="dashboard-activity-list">
+        {% for entry in lead.roadmap_entries.all %}
+        <div class="activity-item">
+            <div class="activity-icon activity-icon--blue"><i class="bi bi-flag-fill"></i></div>
+            <div>
+                <div class="activity-text fw-semibold">{{ entry.title }}</div>
+                {% if entry.note %}<div class="text-muted small">{{ entry.note }}</div>{% endif %}
+                <div class="activity-time">{{ entry.created_at|date:"d M Y, H:i" }}{% if entry.created_by %} · {{ entry.created_by.get_username }}{% endif %}</div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted small mb-0">No roadmap steps yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% empty %}
+<div class="section-card">
+    <p class="text-center text-muted py-4 mb-0">No leads assigned to this branch yet. Follow-up team must verify a lead and send it to your branch.</p>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="section-card">
+    <p class="text-center text-muted py-4 mb-0">Branch profile not found.</p>
+</div>
+{% endif %}

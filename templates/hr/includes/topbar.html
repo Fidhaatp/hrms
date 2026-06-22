@@ -1,0 +1,61 @@
+{% load profile_tags %}
+<header id="topbar">
+    <button class="d-lg-none topbar-btn me-2" onclick="openSidebarMobile()" style="border:none" type="button">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="topbar-greeting d-none d-lg-block">
+        <div class="topbar-greeting-title">Hello, {{ hr_display_name }}!</div>
+        <div class="topbar-greeting-sub">Explore your <span class="topbar-greeting-page">{{ page_title }}</span></div>
+    </div>
+    <div class="topbar-title d-lg-none" id="topbar-title">{{ page_title }}</div>
+
+    <div class="topbar-search">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" placeholder="Search anything…" id="globalSearch" />
+    </div>
+
+    <div class="topbar-actions">
+        <div class="dropdown">
+            <button class="topbar-btn" data-bs-toggle="dropdown" type="button" aria-label="Notifications">
+                <i class="bi bi-bell-fill"></i>
+                {% if document_expiry_alert_count %}<span class="badge-dot"></span>{% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width:320px;max-height:360px;overflow-y:auto">
+                {% include "core/includes/document_expiry_notifications_dropdown.html" %}
+            </ul>
+        </div>
+
+        <div class="dropdown">
+            <button class="topbar-btn" data-bs-toggle="dropdown" type="button">
+                <i class="bi bi-chat-dots-fill"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width:280px">
+                <li><h6 class="dropdown-header">Messages</h6></li>
+                <li><a class="dropdown-item py-2" href="#">
+                    <div style="font-size:13px;font-weight:600">Meena R.</div>
+                    <div style="font-size:11.5px;color:var(--text-muted)">Can you check the Q3 report?</div>
+                </a></li>
+            </ul>
+        </div>
+
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode" type="button"></button>
+
+        <div class="dropdown">
+            <div class="topbar-user" data-bs-toggle="dropdown">
+                {% profile_avatar request.user size="xs" extra_class="hr-user-avatar" %}
+                <div class="user-info d-none d-md-flex">
+                    <span class="user-name">{{ hr_display_name }}</span>
+                    <span class="user-role">{{ hr_role }}</span>
+                </div>
+                <i class="bi bi-chevron-down" style="font-size:10px;color:var(--text-muted);margin-left:4px"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item" href="{% url 'hr:profile' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'hr:leads' %}"><i class="bi bi-people me-2"></i>All Leads</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'core:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</header>

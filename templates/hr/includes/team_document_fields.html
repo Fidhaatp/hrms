@@ -1,0 +1,80 @@
+<div class="team-document-fields mt-3" data-team-documents>
+    <hr class="my-3" />
+    <h6 class="fw-semibold mb-1">Onboarding documents</h6>
+    <p class="text-muted small mb-3 team-documents-hint">Select a branch to see required uploads.</p>
+
+    <div class="team-documents-india d-none">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.aadhaar_card.id_for_label }}">Aadhaar card *</label>
+                {{ form.aadhaar_card }}
+                {% if form.aadhaar_card.errors %}<div class="text-danger small mt-1">{{ form.aadhaar_card.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="team-documents-gulf d-none">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.passport_image.id_for_label }}">Passport copy *</label>
+                {{ form.passport_image }}
+                {% if form.passport_image.errors %}<div class="text-danger small mt-1">{{ form.passport_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.passport_expiry.id_for_label }}">Passport expiry date *</label>
+                {{ form.passport_expiry }}
+                {% if form.passport_expiry.errors %}<div class="text-danger small mt-1">{{ form.passport_expiry.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.emirates_id_image.id_for_label }}">Emirates ID copy *</label>
+                {{ form.emirates_id_image }}
+                {% if form.emirates_id_image.errors %}<div class="text-danger small mt-1">{{ form.emirates_id_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.emirates_id_expiry.id_for_label }}">Emirates ID expiry date *</label>
+                {{ form.emirates_id_expiry }}
+                {% if form.emirates_id_expiry.errors %}<div class="text-danger small mt-1">{{ form.emirates_id_expiry.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.insurance_image.id_for_label }}">Insurance copy *</label>
+                {{ form.insurance_image }}
+                {% if form.insurance_image.errors %}<div class="text-danger small mt-1">{{ form.insurance_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.insurance_expiry.id_for_label }}">Insurance expiry date *</label>
+                {{ form.insurance_expiry }}
+                {% if form.insurance_expiry.errors %}<div class="text-danger small mt-1">{{ form.insurance_expiry.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.labour_card_image.id_for_label }}">Labour card copy *</label>
+                {{ form.labour_card_image }}
+                {% if form.labour_card_image.errors %}<div class="text-danger small mt-1">{{ form.labour_card_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.labour_card_expiry.id_for_label }}">Labour card expiry date *</label>
+                {{ form.labour_card_expiry }}
+                {% if form.labour_card_expiry.errors %}<div class="text-danger small mt-1">{{ form.labour_card_expiry.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.labour_contract_image.id_for_label }}">Labour contract copy *</label>
+                {{ form.labour_contract_image }}
+                {% if form.labour_contract_image.errors %}<div class="text-danger small mt-1">{{ form.labour_contract_image.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.labour_contract_expiry.id_for_label }}">Labour contract expiry date *</label>
+                {{ form.labour_contract_expiry }}
+                {% if form.labour_contract_expiry.errors %}<div class="text-danger small mt-1">{{ form.labour_contract_expiry.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="team-documents-common d-none mt-3">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label branch-form-label" for="{{ form.offer_letter.id_for_label }}">Offer letter *</label>
+                {{ form.offer_letter }}
+                {% if form.offer_letter.errors %}<div class="text-danger small mt-1">{{ form.offer_letter.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>

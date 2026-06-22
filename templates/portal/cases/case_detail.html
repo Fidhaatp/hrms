@@ -1,0 +1,162 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">{{ case.case_ref }} — {{ case.client_name }}</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <a href="{% url 'backoffice:cases' %}" class="text-decoration-none" style="color:var(--text-muted)">Case processing</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Process case</span>
+        </div>
+    </div>
+    <div>
+        <span class="badge-status badge-active">{{ case.get_status_display }}</span>
+    </div>
+</div>
+
+<div class="section-card portal-help-banner mb-3">
+    <p class="mb-2 small text-muted mb-2">Customer journey</p>
+    <div class="d-flex flex-wrap align-items-center gap-2" style="font-size:12px">
+        {% for step in journey_steps %}
+        <span class="badge-status {% if forloop.counter == 3 %}badge-won{% else %}badge-active{% endif %}">{{ step }}</span>
+        {% if not forloop.last %}<i class="bi bi-chevron-down rotate-90 text-muted"></i>{% endif %}
+        {% endfor %}
+    </div>
+    <p class="mb-0 mt-2 small">You are doing <strong>back office case processing</strong> — the real work after the customer paid (verify docs, submit file, track response, update customer).</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="section-card h-100">
+            <div class="section-card-title mb-3">Customer & documents</div>
+            {% if lead %}
+            <dl class="row small mb-3">
+                <dt class="col-5 text-muted">Lead</dt><dd class="col-7">{{ lead.display_id }}</dd>
+                <dt class="col-5 text-muted">Phone</dt><dd class="col-7">{{ lead.phone }}</dd>
+                <dt class="col-5 text-muted">Branch</dt><dd class="col-7">{{ lead.branch.name|default:"—" }}</dd>
+                <dt class="col-5 text-muted">Passport</dt><dd class="col-7">{{ lead.passport_no|default:"—" }}</dd>
+            </dl>
+            <p class="small fw-semibold mb-2">Follow-up document collection</p>
+            <ul class="list-unstyled small mb-2">
+                <li><i class="bi {% if lead.doc_passport_collected %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %} me-1"></i> Passport copy</li>
+                <li><i class="bi {% if lead.doc_certificates_collected %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %} me-1"></i> Certificates</li>
+                <li><i class="bi {% if lead.doc_photos_collected %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %} me-1"></i> Photos</li>
+            </ul>
+            {% if lead.doc_collection_notes %}
+            <p class="small text-muted mb-2"><strong>Notes:</strong> {{ lead.doc_collection_notes }}</p>
+            {% endif %}
+            {% if lead.documents.all %}
+            <p class="small fw-semibold mb-1">Uploaded files</p>
+            <ul class="list-unstyled small mb-0">
+                {% for doc in lead.documents.all %}
+                <li class="mb-1">
+                    <a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.display_name }}</a>
+                    <span class="text-muted">· {{ doc.created_at|date:"d M Y" }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% else %}
+            <p class="text-muted small mb-0">No linked lead.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="section-card mb-3">
+            <div class="section-card-title mb-2">Processing stages</div>
+            <div class="d-flex flex-wrap gap-1 mb-0" style="font-size:11px">
+                {% for item in stage_progress %}
+                <span class="badge-status {% if item.state == 'current' %}badge-won{% elif item.state == 'done' %}badge-active{% else %}badge-closed{% endif %}">{{ item.label }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-card-title mb-3">Record processing work</div>
+            {% if case_form.non_field_errors %}
+            <ul class="auth-error-list mb-3">{% for e in case_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <form method="post" action="{% url 'backoffice:case_update' case.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="return_to" value="backoffice:cases" />
+                <input type="hidden" name="detail" value="1" />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label branch-form-label">Current stage *</label>
+                        {{ case_form.status }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label branch-form-label">Service</label>
+                        <input class="form-control" type="text" value="{{ case.get_service_type_display }}" disabled />
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            {{ case_form.documents_verified }}
+                            <label class="form-check-label" for="{{ case_form.documents_verified.id_for_label }}">All documents verified</label>
+                        </div>
+                        <label class="form-label branch-form-label mt-2">Document verification notes</label>
+                        {{ case_form.documents_verification_note }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label branch-form-label">Application reference</label>
+                        {{ case_form.application_reference }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label branch-form-label">Submitted to (one per line)</label>
+                        {{ case_form.universities_applied }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label branch-form-label">Submission reference</label>
+                        {{ case_form.submission_reference }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label branch-form-label">Authority response</label>
+                        {{ case_form.university_response_summary }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label branch-form-label">Customer status update</label>
+                        {{ case_form.customer_status_update }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label branch-form-label">Activity log entry</label>
+                        {{ case_form.log_note }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label branch-form-label">Internal notes</label>
+                        {{ case_form.notes }}
+                    </div>
+                    <div class="col-12" id="case_completion_notes">
+                        <label class="form-label branch-form-label">Completion summary (when completing case)</label>
+                        {{ case_form.completion_notes }}
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check2-all"></i> Save processing update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="section-card mt-3">
+    <div class="section-card-title mb-3">Activity timeline</div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:12px">
+            <thead><tr><th>When</th><th>Stage</th><th>By</th><th>Note</th></tr></thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="text-muted">{{ log.created_at|date:"d M Y H:i" }}</td>
+                    <td>{{ log.stage_label }}</td>
+                    <td>{{ log.created_by.get_username|default:"—" }}</td>
+                    <td>{{ log.note|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-muted text-center py-3">No activity logged yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

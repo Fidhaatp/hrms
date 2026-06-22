@@ -1,0 +1,84 @@
+<div class="modal fade" id="backofficeProcedureModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title" id="backofficeProcedureModalTitle">Service procedures</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="boProcedureLeadName"></p>
+                <div id="boProcedureList"></div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function boStatusBadge(status) {
+    if (status === 'approved') return '<span class="badge-status badge-won">Approved</span>';
+    if (status === 'pending') return '<span class="badge-status badge-pending">Pending review</span>';
+    if (status === 'rejected') return '<span class="badge-status badge-closed">Rejected</span>';
+    return '<span class="badge-status badge-new">Not started</span>';
+}
+
+function openBackofficeProcedureModal(btn) {
+    const wrap = document.getElementById('boProcedureList');
+    const titleEl = document.getElementById('backofficeProcedureModalTitle');
+    const readonly = btn.dataset.readonly === '1';
+    document.getElementById('boProcedureLeadName').textContent = btn.dataset.name || '';
+    if (titleEl) {
+        titleEl.textContent = readonly ? 'Service procedures' : 'Procedure review';
+    }
+    wrap.innerHTML = '';
+    let steps = [];
+    try {
+        steps = JSON.parse(btn.dataset.steps || '[]');
+    } catch (e) { steps = []; }
+    if (!steps.length) {
+        wrap.innerHTML = '<p class="text-muted small mb-0">No procedures configured for this service.</p>';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('backofficeProcedureModal')).show();
+        return;
+    }
+    const reviewBase = readonly ? '' : (btn.dataset.reviewUrlTemplate || '');
+    steps.forEach((step) => {
+        const row = document.createElement('div');
+        const reviewForm = !readonly && step.status === 'pending' && step.step_id && reviewBase
+            ? `
+            <form method="post" action="${reviewBase.replace('/0/', '/' + step.step_id + '/')}" class="procedure-review-form mt-3 pt-3 border-top">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <label class="form-label branch-form-label mb-1">Review note</label>
+                <textarea name="review_note" class="form-control mb-3" rows="2" placeholder="Optional note"></textarea>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" name="action" value="approve" class="btn btn-success">Approve</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+                </div>
+            </form>`
+            : '';
+        const docLink = step.doc_url
+            ? `<div class="small mt-1"><a href="${step.doc_url}" target="_blank" rel="noopener" class="text-decoration-none"><i class="bi bi-paperclip me-1"></i>${step.doc_name || 'View document'}</a></div>`
+            : (step.doc_name ? `<div class="small text-muted mt-1"><i class="bi bi-paperclip me-1"></i>${step.doc_name}</div>` : '');
+        row.className = 'procedure-step-card border rounded p-3 mb-2';
+        row.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="flex-grow-1 min-width-0">
+                    <div class="small fw-semibold">${step.order}. ${step.name}</div>
+                    ${docLink}
+                    ${step.followup_note ? `<div class="small text-muted mt-1">Follow-up: ${step.followup_note}</div>` : ''}
+                    ${step.review_note ? `<div class="small text-muted mt-1">Review: ${step.review_note}</div>` : ''}
+                </div>
+                <div class="flex-shrink-0 text-end">${boStatusBadge(step.status)}</div>
+            </div>
+            ${reviewForm}
+        `;
+        wrap.appendChild(row);
+    });
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('backofficeProcedureModal')).show();
+}
+
+document.querySelectorAll('.backoffice-procedure-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openBackofficeProcedureModal(btn));
+});
+</script>

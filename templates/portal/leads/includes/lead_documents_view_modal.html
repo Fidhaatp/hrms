@@ -1,0 +1,51 @@
+<div class="modal fade" id="leadDocumentsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title">Customer documents</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3"><strong id="leadDocsCustomerName">—</strong> · <span id="leadDocsLeadId"></span></p>
+                <ul class="list-group list-group-flush small" id="leadDocsList"></ul>
+                <p class="text-muted small mb-0 mt-2 d-none" id="leadDocsEmpty">No files uploaded yet.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById('leadDocumentsModal');
+    if (!modal) return;
+    const list = document.getElementById('leadDocsList');
+    const empty = document.getElementById('leadDocsEmpty');
+
+    document.querySelectorAll('.lead-view-docs-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('leadDocsCustomerName').textContent = btn.dataset.name || '—';
+            document.getElementById('leadDocsLeadId').textContent = btn.dataset.leadId || '';
+            let docs = [];
+            try {
+                docs = JSON.parse(btn.dataset.documents || '[]');
+            } catch (e) { docs = []; }
+            list.innerHTML = '';
+            if (!docs.length) {
+                empty.classList.remove('d-none');
+            } else {
+                empty.classList.add('d-none');
+                docs.forEach((d) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center px-0';
+                    li.innerHTML = `<span><i class="bi bi-file-earmark me-1"></i>${d.label} <span class="text-muted">· ${d.type || ''}${d.type && d.date ? ' · ' : ''}${d.date || ''}</span></span><button type="button" class="btn btn-sm btn-light lead-file-view-btn" data-url="${d.url}" data-label="${d.label}">View</button>`;
+                    list.appendChild(li);
+                });
+            }
+            new bootstrap.Modal(modal).show();
+        });
+    });
+})();
+</script>

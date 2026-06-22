@@ -1,0 +1,235 @@
+<div class="dashboard-page portal-dashboard branch-dashboard-page">
+    <script type="application/json" id="hr-dashboard-chart-data">{{ dashboard_charts_json|safe }}</script>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-title">Branch Dashboard</div>
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i>
+                <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+                <i class="bi bi-chevron-right" style="font-size:9px"></i>
+                <span class="active">Dashboard</span>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'branch:staff' %}?assign_targets=1" class="btn btn-light btn-sm"><i class="bi bi-bullseye me-1"></i>Staff targets</a>
+            <a href="{% url 'branch:all_leads' %}" class="topbar-quick-add text-decoration-none">
+                <i class="bi bi-list-ul"></i> All leads
+            </a>
+        </div>
+    </div>
+
+    {% if branch %}
+    <div class="portal-dashboard-hero portal-dashboard-hero--green mb-4">
+        <div class="portal-dashboard-hero__glow"></div>
+        <div class="row g-3 align-items-center position-relative">
+            <div class="col-lg-8">
+                <div class="portal-dashboard-hero__badge"><i class="bi bi-building me-1"></i> Active branch</div>
+                <h2 class="portal-dashboard-hero__title">{{ branch.name }}</h2>
+                <p class="portal-dashboard-hero__subtitle mb-0">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{{ branch.city }}{% if branch.state %}, {{ branch.state }}{% endif %}
+                    · {{ branch.phone }}
+                </p>
+            </div>
+            {% if branch_manager %}
+            <div class="col-lg-4">
+                <div class="portal-dashboard-hero__side">
+                    <div class="portal-dashboard-hero__side-label">Branch manager</div>
+                    <div class="fw-semibold">{{ portal_display_name }}</div>
+                    <div class="small opacity-75">@{{ branch_manager.username }}</div>
+                    <div class="small opacity-75 mt-1">Since {{ branch_manager.join_date|date:"d M Y" }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Monthly targets · {{ target_summary.period_label }}</p>
+    <div class="section-card target-breakdown-shell mb-4">
+        <div class="target-breakdown-panel">
+        <div class="target-breakdown-panel__header mb-3">
+            <div>
+                <div class="target-breakdown-panel__title"><i class="bi bi-bullseye me-2"></i>Branch target split</div>
+                <div class="target-breakdown-panel__subtitle">Set on <a href="{% url 'branch:staff' %}" class="text-decoration-none fw-semibold">Staff</a> — split among {{ target_summary.staff_count }} team member{{ target_summary.staff_count|pluralize }}</div>
+            </div>
+            <div class="target-breakdown-panel__percent {% if target_summary.breakdown.on_track %}is-on-track{% else %}is-behind{% endif %}">
+                {{ target_summary.achieved_percent }}%
+            </div>
+        </div>
+        <div class="target-breakdown-panel__progress-wrap mb-3">
+            <div class="progress target-breakdown-panel__progress">
+                <div class="progress-bar {% if target_summary.breakdown.on_track %}bg-success{% else %}bg-warning{% endif %}"
+                    style="width:{% if target_summary.achieved_percent > 100 %}100{% else %}{{ target_summary.achieved_percent }}{% endif %}%"></div>
+            </div>
+            <div class="target-breakdown-panel__progress-meta">
+                <span>Achieved <strong>{{ target_summary.achieved_total }}</strong></span>
+                <span>Branch goal <strong>{{ target_summary.branch_target_amount }}</strong></span>
+            </div>
+        </div>
+        <div class="row g-2 g-md-3 mb-0">
+            <div class="col-6 col-lg-3">
+                <div class="target-pace-card target-pace-card--monthly">
+                    <div class="target-pace-card__icon"><i class="bi bi-building"></i></div>
+                    <div class="target-pace-card__label">Branch target</div>
+                    <div class="target-pace-card__value">{{ target_summary.branch_target_amount }}</div>
+                    <div class="target-pace-card__hint">This month</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="target-pace-card target-pace-card--weekly">
+                    <div class="target-pace-card__icon"><i class="bi bi-people"></i></div>
+                    <div class="target-pace-card__label">Assigned</div>
+                    <div class="target-pace-card__value">{{ target_summary.assigned_total }}</div>
+                    <div class="target-pace-card__hint">{{ target_summary.assigned_percent }}% split to staff</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="target-pace-card target-pace-card--daily">
+                    <div class="target-pace-card__icon"><i class="bi bi-pie-chart"></i></div>
+                    <div class="target-pace-card__label">Remaining</div>
+                    <div class="target-pace-card__value">{{ target_summary.remaining }}</div>
+                    <div class="target-pace-card__hint">Not yet assigned</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="target-pace-card target-pace-card--monthly">
+                    <div class="target-pace-card__icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="target-pace-card__label">Weekly pace</div>
+                    <div class="target-pace-card__value">{{ target_summary.breakdown.weekly_target }}</div>
+                    <div class="target-pace-card__hint">Per week at current split</div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <p class="dashboard-section-label">Branch summary</p>
+    <div class="row g-3 mb-4 dashboard-equal-row">
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'branch:staff' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-blue w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-people-fill"></i></div></div>
+                <div class="stat-label">Team</div>
+                <div class="stat-value">{{ metrics.team_count }}</div>
+                <div class="stat-sub">Staff at branch</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <a href="{% url 'branch:all_leads' %}" class="text-decoration-none w-100">
+            <div class="stat-card card-cyan w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-person-lines-fill"></i></div></div>
+                <div class="stat-label">Leads</div>
+                <div class="stat-value">{{ metrics.leads_total }}</div>
+                <div class="stat-sub">{{ metrics.leads_all_time }} all time</div>
+            </div>
+            </a>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-emerald w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div></div>
+                <div class="stat-label">Converted</div>
+                <div class="stat-value">{{ metrics.leads_converted }}</div>
+                <div class="stat-sub">{{ metrics.conversion_rate }}% this month</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3 d-flex">
+            <div class="stat-card card-amber w-100 h-100">
+                <div class="card-top"><div class="stat-icon"><i class="bi bi-telephone-fill"></i></div></div>
+                <div class="stat-label">At follow-up</div>
+                <div class="stat-value">{{ metrics.at_followup }}</div>
+                <div class="stat-sub">Achieved {{ metrics.revenue }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 dashboard-equal-row dashboard-chart-row">
+        <div class="col-lg-8 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div>
+                        <div class="section-card-title">Branch performance</div>
+                        <div class="section-card-subtitle">{{ chart_subtitle|default:"Last 6 months" }}</div>
+                    </div>
+                </div>
+                <div class="chart-wrap flex-grow-1">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex">
+            <div class="section-card dashboard-panel w-100 d-flex flex-column">
+                <div class="section-card-header flex-shrink-0">
+                    <div class="section-card-title">Top staff targets</div>
+                    <div class="section-card-subtitle">This month</div>
+                </div>
+                <div class="p-3 flex-grow-1">
+                    {% for row in target_summary.staff_rows|slice:":5" %}
+                    <div class="portal-mini-row">
+                        <div class="branch-target-staff-row__name">
+                            <div class="fw-semibold small">{{ row.staff.display_name }}</div>
+                            <div class="text-muted" style="font-size:11px">{{ row.achieved_amount }} / {{ row.target_amount }}</div>
+                        </div>
+                        <div class="branch-target-staff-row__bar">
+                            <div class="progress" style="height:6px">
+                                <div class="progress-bar bg-success" style="width:{% if row.achievement_percent > 100 %}100{% else %}{{ row.achievement_percent }}{% endif %}%"></div>
+                            </div>
+                            <span class="small text-muted">{{ row.achievement_percent }}%</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">No staff to show.</p>
+                    {% endfor %}
+                    {% if target_summary.staff_count %}
+                    <a href="{% url 'branch:staff' %}" class="small text-decoration-none d-inline-block mt-2">Manage targets →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-card dashboard-panel mt-3">
+        <div class="section-card-header d-flex justify-content-between align-items-center">
+            <div class="section-card-title">Recent leads</div>
+            <a href="{% url 'branch:all_leads' %}" class="small text-decoration-none">View all</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 dashboard-table">
+                <thead>
+                    <tr>
+                        <th>#ID</th>
+                        <th>Name</th>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in recent_leads %}
+                    <tr>
+                        <td><span class="text-muted small">{{ lead.display_id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-xs lead-avatar">{{ lead.initials }}</div>
+                                <span class="fw-semibold">{{ lead.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ lead.service.name|default:"—" }}</td>
+                        <td><span class="badge-status badge-{{ lead.team_status_badge }}">{{ lead.followup_status.name|default:"New" }}</span></td>
+                        <td class="text-muted small">{{ lead.created_at|date:"d M Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-muted text-center py-4">No leads for this branch yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="section-card">
+        <p class="text-center text-muted py-4 mb-0">Branch profile not found.</p>
+    </div>
+    {% endif %}
+</div>

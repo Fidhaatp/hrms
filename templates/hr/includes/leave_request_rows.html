@@ -1,0 +1,46 @@
+{% for req in leave_requests %}
+<tr data-status="{{ req.status }}">
+    <td>
+        <span class="fw-semibold">{{ req.user.get_full_name|default:req.user.username }}</span>
+        <div class="text-muted small">@{{ req.user.username }}</div>
+    </td>
+    <td><span class="text-muted small">{{ req.user.profile.get_user_type_display }}</span></td>
+    <td>{{ req.leave_category.name }}</td>
+    <td>{{ req.leave_type.name }}</td>
+    <td class="text-muted small">{{ req.start_date|date:"d M Y" }}</td>
+    <td class="text-muted small">{{ req.end_date|date:"d M Y" }}</td>
+    <td>{{ req.days_count }}</td>
+    <td class="small">{{ req.reason|truncatewords:10 }}</td>
+    <td>
+        {% if req.status == 'approved' %}
+        <span class="badge-status badge-won">Approved</span>
+        {% elif req.status == 'rejected' %}
+        <span class="badge-status badge-closed">Rejected</span>
+        {% else %}
+        <span class="badge-status badge-pending">{{ req.get_workflow_stage_display }}</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if req.status == 'pending' %}
+            {% if req.workflow_stage == 'pending_hr' or req.workflow_stage == 'pending_manager' %}
+        <div class="d-flex gap-1">
+            <button type="button" class="action-btn leave-approve-btn btn-status-activate" title="{% if req.workflow_stage == 'pending_manager' %}Approve (HR override){% else %}Approve{% endif %}"
+                data-name="{{ req.user.username|escapejs }}"
+                data-url="{% url 'hr:leave_approve' req.pk %}">
+                <i class="bi bi-check-circle-fill"></i>
+            </button>
+            <button type="button" class="action-btn leave-reject-btn" title="Reject"
+                data-name="{{ req.user.username|escapejs }}"
+                data-url="{% url 'hr:leave_reject' req.pk %}">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
+        </div>
+            {% else %}
+        <span class="text-muted small">—</span>
+            {% endif %}
+        {% else %}
+        <span class="text-muted small">—</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}

@@ -1,0 +1,42 @@
+{% extends "core/account/base_auth.html" %}
+{% load static %}
+
+{% block auth_title %}Register{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card auth-card--portal">
+    <div class="auth-brand">
+        <img src="{% static 'hr/images/takhlees-logo.png' %}" alt="TAKHLEES" class="auth-brand-logo" />
+        <h1>Get started</h1>
+        <p>Choose your portal — HR registers teams; others sign in after HR creates your account</p>
+    </div>
+
+    <div class="auth-links mb-3">
+        Already registered? <a href="{% url 'core:login' %}">Sign in</a>
+    </div>
+
+    <div class="portal-grid">
+        {% for option in registration_options %}
+        {% if option.available %}
+        <a class="portal-card" href="{% url option.url_name %}">
+            <div class="portal-card-icon" style="background: {{ option.color }}">
+                <i class="bi {{ option.icon }}"></i>
+            </div>
+            <h3>{{ option.title }}</h3>
+            <p>{{ option.description }}</p>
+            <span class="portal-badge">Register now</span>
+        </a>
+        {% else %}
+        <div class="portal-card portal-card--disabled">
+            <div class="portal-card-icon" style="background: {{ option.color }}">
+                <i class="bi {{ option.icon }}"></i>
+            </div>
+            <h3>{{ option.title }}</h3>
+            <p>{{ option.description }}</p>
+            <span class="portal-badge portal-badge--soon">Coming soon</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

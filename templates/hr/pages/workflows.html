@@ -1,0 +1,60 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">System Roles & Workflows</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Workflows</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card mb-3">
+    <div class="section-card-title mb-2">Role hierarchy</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead><tr><th>Level</th><th>Role</th><th>Portal</th><th>Responsibilities</th></tr></thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td>{{ role.level }}</td>
+                    <td class="fw-semibold">{{ role.title }}</td>
+                    <td><code>{{ role.portal }}</code></td>
+                    <td class="small">{{ role.responsibilities|join:", " }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    {% for key, wf in workflows.items %}
+    <div class="col-md-6">
+        <div class="section-card h-100">
+            <div class="section-card-title mb-2">{{ wf.title }}</div>
+            <p class="mb-0 small">
+                {% for step in wf.steps %}
+                {% if not forloop.first %}<i class="bi bi-arrow-right mx-1"></i>{% endif %}
+                <span class="badge bg-light text-dark border">{{ step }}</span>
+                {% endfor %}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="section-card">
+    <div class="section-card-title mb-2">Dashboard metrics by category</div>
+    <div class="row g-2">
+        {% for category, items in dashboard_metrics.items %}
+        <div class="col-md-4">
+            <div class="border rounded p-2 h-100">
+                <div class="fw-semibold text-capitalize mb-1">{{ category }}</div>
+                <ul class="small mb-0 ps-3">{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

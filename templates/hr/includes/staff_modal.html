@@ -1,0 +1,25 @@
+<div class="modal fade" id="addStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form method="post" action="{% url 'hr:staff_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Add Staff Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if staff_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in staff_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% include "hr/includes/staff_member_fields.html" with form=staff_form %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-person-check-fill"></i> Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

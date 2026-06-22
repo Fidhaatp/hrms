@@ -1,0 +1,118 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Reports</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url portal_home_url_name %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Reports</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-card mb-4">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Filter report</div>
+        <div class="section-card-subtitle">Choose report type and date range, then preview or download CSV</div>
+    </div>
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label branch-form-label" for="reportType">Report</label>
+            <select name="report" id="reportType" class="form-control">
+                {% for value, label in report_choices %}
+                <option value="{{ value }}"{% if report_type == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label branch-form-label" for="dateFrom">From date</label>
+            <input type="date" name="date_from" id="dateFrom" class="form-control" value="{{ date_from|date:'Y-m-d' }}" required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label branch-form-label" for="dateTo">To date</label>
+            <input type="date" name="date_to" id="dateTo" class="form-control" value="{{ date_to|date:'Y-m-d' }}" required>
+        </div>
+        <div class="col-md-3 d-flex gap-2 flex-wrap">
+            <button type="submit" class="topbar-quick-add"><i class="bi bi-funnel me-1"></i>Filter</button>
+            <a href="{% url 'backoffice:reports_download' %}?report={{ report_type }}&date_from={{ date_from|date:'Y-m-d' }}&date_to={{ date_to|date:'Y-m-d' }}" class="btn btn-light text-decoration-none">
+                <i class="bi bi-download me-1"></i>Download CSV
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if report_type == 'leads' or report_type == 'all' %}
+<div class="section-card mb-4">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Leads ({{ lead_rows|length }})</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Branch</th>
+                    <th>Staff</th>
+                    <th>Follow-up</th>
+                    <th>Back office</th>
+                    <th>Approved</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in lead_rows %}
+                <tr>
+                    <td class="text-muted small">{{ row.id }}</td>
+                    <td class="fw-semibold">{{ row.name }}</td>
+                    <td class="small">{{ row.branch|default:"—" }}</td>
+                    <td class="small text-muted">{{ row.staff|default:"—" }}</td>
+                    <td class="small">{{ row.followup_status|default:"—" }}</td>
+                    <td class="small">{{ row.backoffice_status }}</td>
+                    <td class="text-muted small">{{ row.approved_at }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No leads in this date range.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if report_type == 'cases' or report_type == 'all' %}
+<div class="section-card">
+    <div class="section-card-header mb-3">
+        <div class="section-card-title">Cases ({{ case_rows|length }})</div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Case</th>
+                    <th>Client</th>
+                    <th>Branch</th>
+                    <th>Lead</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in case_rows %}
+                <tr>
+                    <td class="text-muted small">{{ row.ref }}</td>
+                    <td class="fw-semibold">{{ row.client }}</td>
+                    <td class="small">{{ row.branch|default:"—" }}</td>
+                    <td class="small">{{ row.lead|default:"—" }}</td>
+                    <td class="small">{{ row.service }}</td>
+                    <td class="small">{{ row.status }}</td>
+                    <td class="text-muted small">{{ row.created }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No cases in this date range.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

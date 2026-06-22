@@ -1,0 +1,124 @@
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-title">Lead Sources</div>
+        <div class="page-breadcrumb">
+            <i class="bi bi-house-fill"></i>
+            <a href="{% url 'hr:dashboard' %}" class="text-decoration-none" style="color:var(--text-muted)">Home</a>
+            <i class="bi bi-chevron-right" style="font-size:9px"></i>
+            <span class="active">Lead Sources</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:lead_services' %}" class="topbar-quick-add text-decoration-none" style="background:var(--surface-2);color:var(--text)">
+            <i class="bi bi-briefcase"></i> Services
+        </a>
+        <a href="{% url 'hr:lead_statuses' %}" class="topbar-quick-add text-decoration-none" style="background:var(--surface-2);color:var(--text)">
+            <i class="bi bi-flag"></i> Statuses
+        </a>
+        <button class="topbar-quick-add" type="button" onclick="showAddLeadSourceModal()">
+            <i class="bi bi-plus-lg"></i> Add Source
+        </button>
+    </div>
+</div>
+
+<div class="section-card mb-3">
+    <p class="text-muted small mb-0">
+        <strong>Lead sources</strong> appear in the staff add-lead form (Website, Referral, etc.).
+        Only active sources are shown to staff.
+    </p>
+</div>
+
+<div class="section-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Order</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for src in lead_sources %}
+                <tr>
+                    <td class="fw-semibold">{{ src.name }}</td>
+                    <td><code class="small">{{ src.code }}</code></td>
+                    <td class="text-muted small">{{ src.sort_order }}</td>
+                    <td class="text-muted small">{{ src.description|default:"—"|truncatewords:12 }}</td>
+                    <td>
+                        {% if src.is_active %}
+                        <span class="badge-status badge-won">Active</span>
+                        {% else %}
+                        <span class="badge-status badge-closed">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No lead sources yet. Add Website, Referral, etc.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addLeadSourceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'hr:lead_source_add' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Add lead source</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if lead_source_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in lead_source_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="{{ lead_source_form.name.id_for_label }}">Name *</label>
+                        {{ lead_source_form.name }}
+                        {% if lead_source_form.name.errors %}<div class="text-danger small mt-1">{{ lead_source_form.name.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="{{ lead_source_form.code.id_for_label }}">Code</label>
+                        {{ lead_source_form.code }}
+                        <div class="form-text small">e.g. website, referral — auto-generated if blank</div>
+                        {% if lead_source_form.code.errors %}<div class="text-danger small mt-1">{{ lead_source_form.code.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="{{ lead_source_form.sort_order.id_for_label }}">Sort order</label>
+                        {{ lead_source_form.sort_order }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label branch-form-label" for="{{ lead_source_form.description.id_for_label }}">Description</label>
+                        {{ lead_source_form.description }}
+                    </div>
+                    <div class="form-check">
+                        {{ lead_source_form.is_active }}
+                        <label class="form-check-label" for="{{ lead_source_form.is_active.id_for_label }}">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check-lg"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAddLeadSourceModal() {
+    const el = document.getElementById('addLeadSourceModal');
+    if (el) new bootstrap.Modal(el).show();
+}
+{% if show_lead_source_modal %}
+document.addEventListener('DOMContentLoaded', showAddLeadSourceModal);
+{% endif %}
+</script>

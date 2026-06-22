@@ -1,0 +1,48 @@
+{% extends "core/account/base_auth.html" %}
+{% load static %}
+
+{% block auth_title %}Sign In{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+    <div class="auth-brand">
+        <img src="{% static 'hr/images/takhlees-logo.png' %}" alt="TAKHLEES" class="auth-brand-logo" />
+        <h1>Welcome back</h1>
+        <p>Sign in to TAKHLEES HRMS — Staff, Back Office, Follow-up &amp; Branch</p>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} auth-alert">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <ul class="auth-error-list">
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="post" class="auth-form" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label" for="id_username">Username or email</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+            <label class="form-label" for="id_password">Password</label>
+            {{ form.password }}
+            {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+        <button type="submit" class="auth-btn">Sign in</button>
+    </form>
+
+    <div class="auth-links">
+        Don't have an account?
+        <a href="{% url 'core:register_portal' %}">Register by role</a>
+    </div>
+</div>
+{% endblock %}

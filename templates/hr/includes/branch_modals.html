@@ -1,0 +1,198 @@
+<div class="modal fade" id="addBranchModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form method="post" action="{% url 'hr:branch_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Add Branch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if add_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in add_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Branch name *</label>
+                            {{ add_form.name }}
+                            {% if add_form.name.errors %}<div class="text-danger small mt-1">{{ add_form.name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Email *</label>
+                            {{ add_form.email }}
+                            {% if add_form.email.errors %}<div class="text-danger small mt-1">{{ add_form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Phone *</label>
+                            {{ add_form.phone }}
+                            {% if add_form.phone.errors %}<div class="text-danger small mt-1">{{ add_form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Opening date *</label>
+                            {{ add_form.opening_date }}
+                            {% if add_form.opening_date.errors %}<div class="text-danger small mt-1">{{ add_form.opening_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Nationality *</label>
+                            {{ add_form.nationality }}
+                            {% if add_form.nationality.errors %}<div class="text-danger small mt-1">{{ add_form.nationality.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">City *</label>
+                            {{ add_form.city }}
+                            {% if add_form.city.errors %}<div class="text-danger small mt-1">{{ add_form.city.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">State *</label>
+                            {{ add_form.state }}
+                            {% if add_form.state.errors %}<div class="text-danger small mt-1">{{ add_form.state.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Address *</label>
+                            {{ add_form.address }}
+                            {% if add_form.address.errors %}<div class="text-danger small mt-1">{{ add_form.address.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <div class="branch-manager-section">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="add_manager" id="add_manager" value="on"
+                                {% if add_manager_checked %}checked{% endif %} />
+                            <label class="form-check-label fw-semibold" for="add_manager">
+                                <i class="bi bi-person-badge me-1"></i> Add branch manager for this branch
+                            </label>
+                        </div>
+                        <div id="branchManagerFields" class="{% if not add_manager_checked %}d-none{% endif %}">
+                            <p class="text-muted small mb-3">Manager will be linked to the branch you create above.</p>
+                            {% if manager_form.non_field_errors %}
+                            <ul class="auth-error-list mb-3">
+                                {% for error in manager_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% include "hr/includes/branch_manager_fields.html" with mgr_form=manager_form %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check2-all"></i> Save Branch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include "hr/includes/branch_manager_modal.html" %}
+
+<div class="modal fade" id="editBranchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" id="editBranchForm" action="{% if edit_branch %}{% url 'hr:branch_edit' edit_branch.pk %}{% else %}#{% endif %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Edit Branch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if edit_form and edit_form.non_field_errors %}
+                    <ul class="auth-error-list mb-3">
+                        {% for error in edit_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="row g-3" id="editBranchFields">
+                        {% if edit_form %}
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Branch name *</label>
+                            {{ edit_form.name }}
+                            {% if edit_form.name.errors %}<div class="text-danger small mt-1">{{ edit_form.name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Email *</label>
+                            {{ edit_form.email }}
+                            {% if edit_form.email.errors %}<div class="text-danger small mt-1">{{ edit_form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Phone *</label>
+                            {{ edit_form.phone }}
+                            {% if edit_form.phone.errors %}<div class="text-danger small mt-1">{{ edit_form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Opening date *</label>
+                            {{ edit_form.opening_date }}
+                            {% if edit_form.opening_date.errors %}<div class="text-danger small mt-1">{{ edit_form.opening_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Nationality *</label>
+                            {{ edit_form.nationality }}
+                            {% if edit_form.nationality.errors %}<div class="text-danger small mt-1">{{ edit_form.nationality.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">City *</label>
+                            {{ edit_form.city }}
+                            {% if edit_form.city.errors %}<div class="text-danger small mt-1">{{ edit_form.city.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">State *</label>
+                            {{ edit_form.state }}
+                            {% if edit_form.state.errors %}<div class="text-danger small mt-1">{{ edit_form.state.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Address *</label>
+                            {{ edit_form.address }}
+                            {% if edit_form.address.errors %}<div class="text-danger small mt-1">{{ edit_form.address.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% else %}
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Branch name *</label>
+                            <input class="form-control" type="text" name="name" id="edit_name" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Email *</label>
+                            <input class="form-control" type="email" name="email" id="edit_email" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Phone *</label>
+                            <input class="form-control" type="text" name="phone" id="edit_phone" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Opening date *</label>
+                            <input class="form-control" type="date" name="opening_date" id="edit_opening_date" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">Nationality *</label>
+                            {% include "hr/includes/branch_nationality_select.html" with input_id="edit_nationality" %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">City *</label>
+                            <input class="form-control" type="text" name="city" id="edit_city" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label branch-form-label">State *</label>
+                            <input class="form-control" type="text" name="state" id="edit_state" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label branch-form-label">Address *</label>
+                            <textarea class="form-control" name="address" id="edit_address" rows="2" required></textarea>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-check2-all"></i> Update Branch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<datalist id="branch-country-list">
+    {% for country in country_choices %}
+    <option value="{{ country }}"></option>
+    {% endfor %}
+</datalist>
+
+{% include "hr/includes/branch_status_form.html" %}

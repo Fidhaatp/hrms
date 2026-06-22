@@ -1,0 +1,21 @@
+<style>
+html.sidebar-collapsed-init #sidebar { width: 68px; }
+html.sidebar-collapsed-init #main-wrapper { margin-left: 68px; }
+html.sidebar-collapsed-init #sidebar .sidebar-brand { padding: 18px 0; justify-content: center; }
+html.sidebar-collapsed-init #sidebar .sidebar-brand a { justify-content: center; width: 100%; gap: 0; }
+html.sidebar-collapsed-init #sidebar .nav-item-group > li { display: flex; justify-content: center; }
+html.sidebar-collapsed-init #sidebar .nav-link-item { margin: 4px auto; padding: 10px; width: 44px; justify-content: center; gap: 0; }
+</style>
+<script>
+(function () {
+    try {
+        var theme = localStorage.getItem('nexusTheme');
+        if (theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        if (localStorage.getItem('takhleesSidebarCollapsed') === '1') {
+            document.documentElement.classList.add('sidebar-collapsed-init');
+        }
+    } catch (e) {}
+})();
+</script>

@@ -1,0 +1,59 @@
+<div class="modal fade" id="leadFilePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title" id="leadFilePreviewTitle">View file</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="leadFilePreviewBody" class="p-3 text-center bg-light" style="min-height:200px"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    if (window.openLeadFilePreview) return;
+
+    function leadFilePreviewType(url) {
+        const path = (url || '').split('?')[0].split('#')[0];
+        const ext = (path.split('.').pop() || '').toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image';
+        if (ext === 'pdf') return 'pdf';
+        return 'other';
+    }
+
+    window.openLeadFilePreview = function (url, label) {
+        const modalEl = document.getElementById('leadFilePreviewModal');
+        if (!modalEl || !url) return;
+
+        const body = document.getElementById('leadFilePreviewBody');
+        const title = document.getElementById('leadFilePreviewTitle');
+        const type = leadFilePreviewType(url);
+        const safeLabel = label || 'File';
+
+        title.textContent = safeLabel;
+
+        if (type === 'image') {
+            body.innerHTML = `<img src="${url}" alt="${safeLabel}" class="img-fluid rounded" style="max-height:75vh">`;
+        } else if (type === 'pdf') {
+            body.innerHTML = `<iframe src="${url}" title="${safeLabel}" class="w-100 rounded" style="height:75vh;border:0"></iframe>`;
+        } else {
+            body.innerHTML = `<div class="py-5"><i class="bi bi-file-earmark display-4 text-muted"></i><p class="text-muted mt-3 mb-0">Preview is not available for this file type on this page.</p></div>`;
+        }
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    };
+
+    document.addEventListener('click', (event) => {
+        const btn = event.target.closest('.lead-file-view-btn');
+        if (!btn) return;
+        event.preventDefault();
+        openLeadFilePreview(btn.dataset.url, btn.dataset.label || btn.dataset.name || 'File');
+    });
+})();
+</script>
