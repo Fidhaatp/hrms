@@ -42,6 +42,11 @@ from core.dashboard_metrics import (
 from core.lead_forms import LeadServiceForm, LeadSourceForm, LeadStatusForm
 from core.lead_utils import converted_leads_filter
 from core.leave_forms import LeaveCategoryForm, LeaveTypeForm
+from core.leave_utils import (
+    hr_actionable_leave_requests_queryset,
+    hr_pending_leave_requests_queryset,
+    team_leave_requests_queryset,
+)
 from core.countries import COUNTRY_NAMES
 from core.models import (
     ApprovalStatus,
