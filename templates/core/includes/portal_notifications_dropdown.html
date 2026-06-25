@@ -1,0 +1,82 @@
+{% if request.user.is_superuser or request.user.profile.user_type == 'hr' %}
+<li><h6 class="dropdown-header">Document expiry alerts</h6></li>
+{% if document_expiry_alerts %}
+    {% if document_expiry_expired_alerts %}
+    <li><div class="dropdown-item text-danger small py-1 fw-semibold">Expired ({{ document_expiry_expired_count }})</div></li>
+    {% for alert in document_expiry_expired_alerts|slice:":4" %}
+    <li>
+        {% if request.user.profile.user_type == 'hr' %}
+        <a href="{% url 'hr:compliance' %}" class="dropdown-item py-2 text-decoration-none">
+        {% else %}
+        <a href="{% url 'core:notifications' %}" class="dropdown-item py-2 text-decoration-none">
+        {% endif %}
+            <div style="font-size:13px;font-weight:600" class="text-dark">Expired · {{ alert.document_label }}</div>
+            <div style="font-size:11.5px;color:var(--text-muted)">{{ alert.message }}</div>
+        </a>
+    </li>
+    {% endfor %}
+    {% endif %}
+    {% if document_expiry_soon_alerts %}
+    <li><div class="dropdown-item text-warning small py-1 fw-semibold">Expiring soon ({{ document_expiry_soon_count }})</div></li>
+    {% for alert in document_expiry_soon_alerts|slice:":4" %}
+    <li>
+        {% if request.user.profile.user_type == 'hr' %}
+        <a href="{% url 'hr:compliance' %}" class="dropdown-item py-2 text-decoration-none">
+        {% else %}
+        <a href="{% url 'core:notifications' %}" class="dropdown-item py-2 text-decoration-none">
+        {% endif %}
+            <div style="font-size:13px;font-weight:600" class="text-dark">Expiring soon · {{ alert.document_label }}</div>
+            <div style="font-size:11.5px;color:var(--text-muted)">{{ alert.message }}</div>
+        </a>
+    </li>
+    {% endfor %}
+    {% endif %}
+    {% if document_expiry_alert_count > 8 %}
+    <li><div class="dropdown-item text-muted small py-1">+ {{ document_expiry_alert_count|add:"-8" }} more alert{{ document_expiry_alert_count|add:"-8"|pluralize }}</div></li>
+    {% endif %}
+{% else %}
+    <li><div class="dropdown-item text-muted small py-2">No document expiry alerts.</div></li>
+{% endif %}
+{% endif %}
+
+{% if not request.user.is_superuser and request.user.profile.user_type != 'hr' %}
+
+<li><h6 class="dropdown-header">Lead service expiry alerts</h6></li>
+{% if lead_expiry_alerts %}
+    {% if lead_expiry_expired_alerts %}
+    <li><div class="dropdown-item text-danger small py-1 fw-semibold">Expired ({{ lead_expiry_expired_count }})</div></li>
+    {% for alert in lead_expiry_expired_alerts|slice:":4" %}
+    <li>
+        {% if request.user.profile.user_type == 'hr' %}
+        <a href="{% url 'hr:leads' %}?search={{ alert.lead_display_id }}" class="dropdown-item py-2 text-decoration-none">
+        {% else %}
+        <a href="{% url 'followup:all_leads' %}?search={{ alert.lead_display_id }}" class="dropdown-item py-2 text-decoration-none">
+        {% endif %}
+            <div style="font-size:13px;font-weight:600" class="text-dark">Expired · {{ alert.lead_display_id }}</div>
+            <div style="font-size:11.5px;color:var(--text-muted)">{{ alert.message }}</div>
+        </a>
+    </li>
+    {% endfor %}
+    {% endif %}
+    {% if lead_expiry_soon_alerts %}
+    <li><div class="dropdown-item text-warning small py-1 fw-semibold">Expiring soon ({{ lead_expiry_soon_count }})</div></li>
+    {% for alert in lead_expiry_soon_alerts|slice:":4" %}
+    <li>
+        {% if request.user.profile.user_type == 'hr' %}
+        <a href="{% url 'hr:leads' %}?search={{ alert.lead_display_id }}" class="dropdown-item py-2 text-decoration-none">
+        {% else %}
+        <a href="{% url 'followup:all_leads' %}?search={{ alert.lead_display_id }}" class="dropdown-item py-2 text-decoration-none">
+        {% endif %}
+            <div style="font-size:13px;font-weight:600" class="text-dark">Expiring soon · {{ alert.lead_display_id }}</div>
+            <div style="font-size:11.5px;color:var(--text-muted)">{{ alert.message }}</div>
+        </a>
+    </li>
+    {% endfor %}
+    {% endif %}
+    {% if lead_expiry_alert_count > 8 %}
+    <li><div class="dropdown-item text-muted small py-1">+ {{ lead_expiry_alert_count|add:"-8" }} more alert{{ lead_expiry_alert_count|add:"-8"|pluralize }}</div></li>
+    {% endif %}
+{% else %}
+    <li><div class="dropdown-item text-muted small py-2">No service expiry alerts.</div></li>
+{% endif %}
+{% endif %}

@@ -1,0 +1,202 @@
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="h5 mb-0">Notifications</h2>
+</div>
+
+<div class="row justify-content-center">
+    {% if not request.user.is_superuser and request.user.profile.user_type != 'hr' %}
+    <!-- Lead Expiry Alerts Column -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h5 class="mb-0" style="font-weight: 600;">Lead service expiry alerts</h5>
+            </div>
+            <div class="card-body">
+                {% if lead_expiry_alerts %}
+                    {% if lead_expiry_expired_alerts %}
+                        <h6 class="text-danger small fw-bold mb-3 mt-2 border-bottom pb-2">Expired ({{ lead_expiry_expired_count }})</h6>
+                        <div class="list-group list-group-flush mb-4">
+                            {% for alert in lead_expiry_expired_alerts %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                {% if request.user.profile.user_type == 'hr' %}
+                                <a href="{% url 'hr:leads' %}?search={{ alert.lead_display_id }}" class="text-decoration-none d-block mb-2">
+                                {% else %}
+                                <a href="{% url 'followup:all_leads' %}?search={{ alert.lead_display_id }}" class="text-decoration-none d-block mb-2">
+                                {% endif %}
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-dark fw-semibold">{{ alert.lead_display_id }} - {{ alert.lead_name }}</h6>
+                                        <small class="text-danger fw-semibold">{{ alert.days_ago }} days ago</small>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ alert.message }}</p>
+                                </a>
+                                {% if request.user.profile.user_type == 'branch' %}
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">
+                                        {% if alert.assigned_to_name %}
+                                            Assigned to: <span class="fw-semibold text-dark">{{ alert.assigned_to_name }}</span>
+                                        {% else %}
+                                            Not assigned
+                                        {% endif %}
+                                    </small>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0" onclick="openAssignModal('{{ alert.lead_id }}', '{{ alert.assigned_to_id|default:'' }}')">
+                                        Assign Staff
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    {% if lead_expiry_soon_alerts %}
+                        <h6 class="text-warning small fw-bold mb-3 mt-2 border-bottom pb-2">Expiring soon ({{ lead_expiry_soon_count }})</h6>
+                        <div class="list-group list-group-flush mb-4">
+                            {% for alert in lead_expiry_soon_alerts %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                {% if request.user.profile.user_type == 'hr' %}
+                                <a href="{% url 'hr:leads' %}?search={{ alert.lead_display_id }}" class="text-decoration-none d-block mb-2">
+                                {% else %}
+                                <a href="{% url 'followup:all_leads' %}?search={{ alert.lead_display_id }}" class="text-decoration-none d-block mb-2">
+                                {% endif %}
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-dark fw-semibold">{{ alert.lead_display_id }} - {{ alert.lead_name }}</h6>
+                                        <small class="text-warning fw-semibold">in {{ alert.days_left }} days</small>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ alert.message }}</p>
+                                </a>
+                                {% if request.user.profile.user_type == 'branch' %}
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">
+                                        {% if alert.assigned_to_name %}
+                                            Assigned to: <span class="fw-semibold text-dark">{{ alert.assigned_to_name }}</span>
+                                        {% else %}
+                                            Not assigned
+                                        {% endif %}
+                                    </small>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0" onclick="openAssignModal('{{ alert.lead_id }}', '{{ alert.assigned_to_id|default:'' }}')">
+                                        Assign Staff
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle text-success fs-1 mb-3"></i>
+                        <h6 class="text-muted">No service expiry alerts</h6>
+                        <p class="small text-muted">You're all caught up!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if request.user.is_superuser or request.user.profile.user_type == 'hr' %}
+    <!-- Document Expiry Alerts Column -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h5 class="mb-0" style="font-weight: 600;">Employee document expiry alerts</h5>
+            </div>
+            <div class="card-body">
+                {% if document_expiry_alerts %}
+                    {% if document_expiry_expired_alerts %}
+                        <h6 class="text-danger small fw-bold mb-3 mt-2 border-bottom pb-2">Expired ({{ document_expiry_expired_count }})</h6>
+                        <div class="list-group list-group-flush mb-4">
+                            {% for alert in document_expiry_expired_alerts %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                {% if request.user.profile.user_type == 'hr' or request.user.is_superuser %}
+                                <a href="{% url 'hr:compliance' %}" class="text-decoration-none d-block mb-2">
+                                {% else %}
+                                <a href="#" class="text-decoration-none d-block mb-2">
+                                {% endif %}
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-dark fw-semibold">{{ alert.document_label }}</h6>
+                                        <small class="text-danger fw-semibold">{{ alert.days_ago }} days ago</small>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ alert.message }}</p>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    {% if document_expiry_soon_alerts %}
+                        <h6 class="text-warning small fw-bold mb-3 mt-2 border-bottom pb-2">Expiring soon ({{ document_expiry_soon_count }})</h6>
+                        <div class="list-group list-group-flush mb-4">
+                            {% for alert in document_expiry_soon_alerts %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                {% if request.user.profile.user_type == 'hr' or request.user.is_superuser %}
+                                <a href="{% url 'hr:compliance' %}" class="text-decoration-none d-block mb-2">
+                                {% else %}
+                                <a href="#" class="text-decoration-none d-block mb-2">
+                                {% endif %}
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-dark fw-semibold">{{ alert.document_label }}</h6>
+                                        <small class="text-warning fw-semibold">in {{ alert.days_left }} days</small>
+                                    </div>
+                                    <p class="mb-1 text-muted small">{{ alert.message }}</p>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle text-success fs-1 mb-3"></i>
+                        <h6 class="text-muted">No document expiry alerts</h6>
+                        <p class="small text-muted">You're all caught up!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if request.user.profile.user_type == 'branch' %}
+<!-- Assign Staff Modal -->
+<div class="modal fade" id="assignStaffModal" tabindex="-1" aria-labelledby="assignStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="assignStaffModalLabel">Assign Renewal to Staff</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'core:assign_renewal_staff' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="lead_id" id="assignLeadId">
+                    <div class="mb-3">
+                        <label for="assignStaffSelect" class="form-label">Select Staff</label>
+                        <select name="staff_id" id="assignStaffSelect" class="form-select">
+                            <option value="">-- Unassigned (Clear assignment) --</option>
+                            {% for staff in branch_staff %}
+                            <option value="{{ staff.user.pk }}">{{ staff.user.get_full_name|default:staff.user.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">The selected staff member will receive this expiry alert.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAssignModal(leadId, currentStaffId) {
+        document.getElementById('assignLeadId').value = leadId;
+        const select = document.getElementById('assignStaffSelect');
+        select.value = currentStaffId;
+        
+        const modal = new bootstrap.Modal(document.getElementById('assignStaffModal'));
+        modal.show();
+    }
+</script>
+{% endif %}

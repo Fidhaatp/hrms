@@ -18,11 +18,26 @@ def portal_notifications(request):
             "document_expiry_expired_count": 0,
             "document_expiry_soon_count": 0,
             "document_expiry_alert_days": 7,
+            
+            "lead_expiry_alerts": [],
+            "lead_expiry_expired_alerts": [],
+            "lead_expiry_soon_alerts": [],
+            "lead_expiry_alert_count": 0,
+            "lead_expiry_expired_count": 0,
+            "lead_expiry_soon_count": 0,
+            "lead_expiry_alert_days": 7,
+            
+            "total_notification_count": 0,
         }
 
     alerts = document_expiry_alerts_for_request(request.user)
     expired, expiring_soon = _split_document_expiry_alerts(alerts)
     from core.document_expiry_alerts import DOCUMENT_EXPIRY_ALERT_DAYS
+    
+    from core.lead_expiry_alerts import lead_expiry_alerts_for_request, LEAD_EXPIRY_ALERT_DAYS
+    lead_alerts = lead_expiry_alerts_for_request(request.user)
+    lead_expired = [row for row in lead_alerts if row.get("is_expired")]
+    lead_expiring_soon = [row for row in lead_alerts if not row.get("is_expired")]
 
     return {
         "document_expiry_alerts": alerts,
@@ -32,6 +47,16 @@ def portal_notifications(request):
         "document_expiry_expired_count": len(expired),
         "document_expiry_soon_count": len(expiring_soon),
         "document_expiry_alert_days": DOCUMENT_EXPIRY_ALERT_DAYS,
+        
+        "lead_expiry_alerts": lead_alerts,
+        "lead_expiry_expired_alerts": lead_expired,
+        "lead_expiry_soon_alerts": lead_expiring_soon,
+        "lead_expiry_alert_count": len(lead_alerts),
+        "lead_expiry_expired_count": len(lead_expired),
+        "lead_expiry_soon_count": len(lead_expiring_soon),
+        "lead_expiry_alert_days": LEAD_EXPIRY_ALERT_DAYS,
+        
+        "total_notification_count": len(alerts) + len(lead_alerts),
     }
 
 

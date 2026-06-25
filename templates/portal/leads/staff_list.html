@@ -102,6 +102,17 @@
                             <div class="text-muted small mt-1">Sent to follow-up</div>
                             {% endif %}
                         </button>
+                        {% if lead.renewal_assigned_to == request.user and not lead.renewal_handled %}
+                        <div class="mt-2">
+                            <span class="badge bg-warning text-dark border border-warning shadow-sm mb-1 d-block"><i class="bi bi-arrow-repeat"></i> Renewal Assigned</span>
+                            <form action="{% url 'staff:lead_start_renewal' lead.pk %}" method="post" class="d-inline w-100">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary w-100 py-0" style="font-size:11px;">
+                                    <i class="bi bi-play-circle-fill"></i> Start
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </td>
                     <td>
                         <div class="d-flex gap-1 align-items-center flex-nowrap">
@@ -693,6 +704,7 @@ document.querySelectorAll('.staff-lead-status-btn').forEach((btn) => {
 document.querySelectorAll('.staff-lead-history-btn').forEach((btn) => {
     btn.addEventListener('click', () => openStaffLeadHistoryModal(btn));
 });
+
 {% if show_lead_modal %}document.addEventListener('DOMContentLoaded', showAddLeadModal);{% endif %}
 {% if show_lead_status_modal and status_lead %}
 document.addEventListener('DOMContentLoaded', () => {

@@ -19,10 +19,10 @@
         <div class="dropdown">
             <button class="topbar-btn" data-bs-toggle="dropdown" type="button" aria-label="Notifications">
                 <i class="bi bi-bell-fill"></i>
-                {% if document_expiry_alert_count %}<span class="badge-dot"></span>{% endif %}
+                {% if total_notification_count %}<span class="badge-dot"></span>{% endif %}
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width:320px;max-height:360px;overflow-y:auto">
-                {% include "core/includes/document_expiry_notifications_dropdown.html" %}
+                {% include "core/includes/portal_notifications_dropdown.html" %}
             </ul>
         </div>
 

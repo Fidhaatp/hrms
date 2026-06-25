@@ -33,7 +33,8 @@
                     <th>Procedure status</th>
                     <th>Lead status</th>
                     <th>Sent</th>
-                    <th>View</th>
+                    <th title="Service expiry — shown on expiry calendar">Service expiry</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,6 +64,7 @@
                         <span class="badge-status badge-{{ lead.procedure_lead_status_badge }}">{{ lead.procedure_lead_status_label }}</span>
                     </td>
                     <td class="text-muted small">{{ lead.sent_to_followup_at|date:"d M Y" }}</td>
+                    <td>{% include "portal/leads/includes/service_expire_cell.html" %}</td>
                     <td>
                         <div class="d-flex gap-1">
                             <button type="button" class="action-btn lead-view-detail-btn" title="View lead data"
@@ -81,7 +83,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="12" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No completed leads yet. Leads appear here after every procedure is approved — ongoing work stays on <a href="{% url 'followup:lead_list' %}">Follow-up Leads</a>.{% endif %}</td>
+                    <td colspan="13" class="text-center text-muted py-4">{% if filters_active %}No leads match your filters.{% else %}No completed leads yet. Leads appear here after every procedure is approved — ongoing work stays on <a href="{% url 'followup:lead_list' %}">Follow-up Leads</a>.{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -93,3 +95,49 @@
 {% include "portal/leads/includes/lead_detail_view_modal.html" %}
 {% include "portal/leads/includes/lead_file_preview_modal.html" %}
 {% include "portal/leads/includes/lead_files_list_modal.html" %}
+
+<div class="modal fade" id="followupExpireModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="followupExpireForm" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title branch-modal-title">Service expiry date</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="followupExpireLeadName"></p>
+                    <div class="mb-0">
+                        <label class="form-label branch-form-label" for="fuExpireDate">Service expire date</label>
+                        <input type="date" name="service_expire_date" id="fuExpireDate" class="form-control" required />
+                        <div class="form-text">This date appears on the <strong>Expiry calendar</strong> with a yellow dot.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="topbar-quick-add"><i class="bi bi-calendar-check"></i> Save date</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openFollowupExpireModal(btn) {
+        document.getElementById('followupExpireForm').action = btn.dataset.url;
+        document.getElementById('followupExpireLeadName').textContent = btn.dataset.name || '';
+        document.getElementById('fuExpireDate').value = btn.dataset.serviceExpireDate || '';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('followupExpireModal')).show();
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.followup-expire-btn').forEach((btn) => {
+            btn.addEventListener('click', () => openFollowupExpireModal(btn));
+        });
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('expire_saved') === '1') {
+            alert('Expiry date saved successfully!');
+        }
+    });
+</script>

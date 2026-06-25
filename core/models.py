@@ -667,8 +667,8 @@ class Lead(models.Model):
         choices=ClientType.choices,
         default=ClientType.COMPANY,
     )
-    phone = models.CharField(max_length=30, unique=True)
-    email = models.EmailField(blank=True, null=True, unique=True)
+    phone = models.CharField(max_length=30)
+    email = models.EmailField(blank=True, null=True)
     source = models.ForeignKey(
         LeadSource,
         on_delete=models.PROTECT,
@@ -762,6 +762,25 @@ class Lead(models.Model):
         null=True,
         blank=True,
         help_text="Service expiry date set by follow-up; shown on portal calendars.",
+    )
+    renewal_assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="renewal_assigned_leads"
+    )
+    renewal_handled = models.BooleanField(
+        default=False,
+        help_text="Indicates if this renewal alert has been handled (e.g. by creating a new lead)."
+    )
+    renewed_from = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="renewal_leads",
+        help_text="If this lead was created as a renewal, this links to the original lead."
     )
 
     doc_passport_collected = models.BooleanField(

@@ -33,7 +33,6 @@
                     <th title="Follow-up progress for this customer">Customer status</th>
                     <th title="Current service procedure step">Procedure status</th>
                     <th title="All procedures completed or still in progress">Lead status</th>
-                    <th title="Service expiry — shown on expiry calendar">Service expiry</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -79,17 +78,8 @@
                         <span class="badge-status badge-{{ lead.procedure_lead_status_badge }}">{{ lead.procedure_lead_status_label }}</span>
                         {% endif %}
                     </td>
-                    <td>{% include "portal/leads/includes/service_expire_cell.html" %}</td>
                     <td>
                         <div class="d-flex gap-1 align-items-center flex-nowrap">
-                            <button type="button" class="action-btn followup-expire-btn" 
-                                title="{% if lead.active_procedure_status.label == 'Completed' or lead.active_procedure_status.label == '—' %}Service expiry date{% else %}Complete all procedures first{% endif %}"
-                                {% if lead.active_procedure_status.label != 'Completed' and lead.active_procedure_status.label != '—' %}disabled{% endif %}
-                                data-name="{{ lead.name|escapejs }}"
-                                data-service-expire-date="{% if lead.service_expire_date %}{{ lead.service_expire_date|date:'Y-m-d' }}{% endif %}"
-                                data-url="{% url 'followup:lead_expire_date' lead.pk %}">
-                                <i class="bi bi-calendar-event"></i>
-                            </button>
                             <button type="button" class="action-btn followup-procedure-btn" title="Service procedures"
                                 data-name="{{ lead.name|escapejs }}"
                                 data-service="{{ lead.service.name|default:''|escapejs }}"
@@ -190,38 +180,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="topbar-quick-add" id="followupStatusSubmit"><i class="bi bi-check-lg"></i> Save status</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="followupExpireModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" id="followupExpireForm" action="#">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title branch-modal-title">Service expiry date</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3" id="followupExpireLeadName"></p>
-                    {% if followup_expire_form and followup_expire_form.non_field_errors %}
-                    <ul class="auth-error-list mb-3">
-                        {% for e in followup_expire_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
-                    </ul>
-                    {% endif %}
-                    <div class="mb-0">
-                        <label class="form-label branch-form-label" for="fuExpireDate">Service expire date</label>
-                        <input type="date" name="service_expire_date" id="fuExpireDate" class="form-control" />
-                        <div class="form-text">This date appears on the <strong>Expiry calendar</strong> with a yellow dot.</div>
-                        {% if followup_expire_form.service_expire_date.errors %}<div class="text-danger small">{{ followup_expire_form.service_expire_date.errors.0 }}</div>{% endif %}
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="topbar-quick-add"><i class="bi bi-calendar-check"></i> Save date</button>
                 </div>
             </form>
         </div>
@@ -432,13 +390,6 @@ function renderFollowupProcedureModal(steps) {
     hideSubmitForm('All procedure steps are completed and approved.');
 }
 
-function openFollowupExpireModal(btn) {
-    document.getElementById('followupExpireForm').action = btn.dataset.url;
-    document.getElementById('followupExpireLeadName').textContent = btn.dataset.name || '';
-    document.getElementById('fuExpireDate').value = btn.dataset.serviceExpireDate || '';
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupExpireModal')).show();
-}
-
 function openFollowupProcedureModal(btn) {
     document.getElementById('followupProcedureForm').action = btn.dataset.submitUrl;
     document.getElementById('followupProcedureLead').textContent = btn.dataset.name || '';
@@ -459,9 +410,7 @@ document.querySelectorAll('.followup-docs-btn').forEach((btn) => {
 document.querySelectorAll('.followup-status-btn').forEach((btn) => {
     btn.addEventListener('click', () => openFollowupStatusModal(btn));
 });
-document.querySelectorAll('.followup-expire-btn').forEach((btn) => {
-    btn.addEventListener('click', () => openFollowupExpireModal(btn));
-});
+
 document.querySelectorAll('.followup-procedure-btn').forEach((btn) => {
     btn.addEventListener('click', () => openFollowupProcedureModal(btn));
 });
@@ -482,14 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bootstrap.Modal.getOrCreateInstance(document.getElementById('followupStatusModal')).show();
 });
 {% endif %}
-{% if show_followup_expire_modal and expire_lead %}
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('followupExpireForm').action = "{% url 'followup:lead_expire_date' expire_lead.pk %}";
-    document.getElementById('followupExpireLeadName').textContent = "{{ expire_lead.name|escapejs }}";
-    document.getElementById('fuExpireDate').value = "{% if expire_lead.service_expire_date %}{{ expire_lead.service_expire_date|date:'Y-m-d' }}{% endif %}";
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('followupExpireModal')).show();
-});
-{% endif %}
+
 {% if show_followup_procedure_modal and procedure_lead %}
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('followupProcedureForm');

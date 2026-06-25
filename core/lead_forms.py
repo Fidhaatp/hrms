@@ -104,8 +104,8 @@ class StaffLeadAddForm(forms.ModelForm):
         if error:
             self.add_error("phone", error)
             return cleaned
-        if Lead.objects.filter(phone=phone).exists():
-            self.add_error("phone", "A lead with this phone number already exists.")
+        if Lead.objects.filter(phone=phone).exclude(staff_status__code__in=['lost', 'converted']).exists():
+            self.add_error("phone", "An active lead with this phone number already exists.")
             return cleaned
         cleaned["phone"] = phone
         return cleaned
@@ -167,11 +167,11 @@ class StaffLeadEditForm(forms.ModelForm):
         if error:
             self.add_error("phone", error)
             return cleaned
-        qs = Lead.objects.filter(phone=phone)
+        qs = Lead.objects.filter(phone=phone).exclude(staff_status__code__in=['lost', 'converted'])
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            self.add_error("phone", "A lead with this phone number already exists.")
+            self.add_error("phone", "An active lead with this phone number already exists.")
             return cleaned
         cleaned["phone"] = phone
         return cleaned

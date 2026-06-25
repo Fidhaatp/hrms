@@ -19,6 +19,8 @@
                         <i class="bi bi-bell-fill nav-icon-alert"></i>
                         {% elif item.nav_key == 'procedures' and backoffice_procedure_review_count %}
                         <i class="bi bi-bell-fill nav-icon-alert"></i>
+                        {% elif item.nav_key == 'notifications' and total_notification_count %}
+                        <i class="bi bi-bell-fill nav-icon-alert"></i>
                         {% else %}
                         <i class="{{ item.icon }}"></i>
                         {% endif %}
@@ -32,6 +34,8 @@
                     <span class="nav-badge nav-badge-alert">{{ backoffice_team_pending_leads_count }}</span>
                     {% elif item.nav_key == 'procedures' and backoffice_procedure_review_count %}
                     <span class="nav-badge nav-badge-alert">{{ backoffice_procedure_review_count }}</span>
+                    {% elif item.nav_key == 'notifications' and total_notification_count %}
+                    <span class="nav-badge nav-badge-alert">{{ total_notification_count }}</span>
                     {% endif %}
                 </a>
             </li>

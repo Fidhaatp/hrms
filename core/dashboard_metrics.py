@@ -488,7 +488,7 @@ def staff_dashboard_metrics(user):
     month_start = _month_start()
     prev_month_start = _month_shift(month_start, 1)
     prev_month_end = month_start - timedelta(days=1)
-    base = Lead.objects.filter(created_by=user)
+    base = Lead.objects.filter(Q(created_by=user) | Q(renewal_assigned_to=user, renewal_handled=False))
 
     total = base.count()
     this_month = base.filter(created_at__date__gte=month_start).count()

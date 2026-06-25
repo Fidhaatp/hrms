@@ -10,6 +10,12 @@ HR_NAV_SECTIONS = [
                 "icon": "bi-grid-1x2-fill",
                 "url_name": "hr:dashboard",
             },
+            {
+                "nav_key": "notifications",
+                "label": "Notifications",
+                "icon": "bi-bell-fill",
+                "url_name": "core:notifications",
+            },
         ],
     },
     {

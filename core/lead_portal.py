@@ -65,7 +65,7 @@ from core.lead_monitoring import (
     monitoring_lead_cards,
     parse_monitoring_params,
 )
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Case, When, BooleanField, Value
 
 from core.models import (
     ClientCase,
@@ -104,7 +104,15 @@ def _staff_lead_context(request, **extra):
     staff_branch = get_creator_branch(request.user)
     filters = parse_lead_list_filters(request)
     leads = apply_lead_list_filters(
-        Lead.objects.filter(created_by=request.user)
+        Lead.objects.filter(Q(created_by=request.user) | Q(renewal_assigned_to=request.user, renewal_handled=False))
+        .annotate(
+            is_renewal_assigned=Case(
+                When(renewal_assigned_to=request.user, renewal_handled=False, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
+        .order_by("-is_renewal_assigned", "-created_at")
         .select_related(
             "backoffice_checked_by", "branch", "source", "service", "staff_status", "followup_status", "lost_reason_type"
         )
@@ -272,6 +280,19 @@ def staff_lead_add_view():
                 title="Lead registered",
                 note=f"Staff added lead at {lead.branch.name} — status New.",
             )
+            
+            renewed_from_id = request.POST.get("renewed_from_lead_id")
+            if renewed_from_id:
+                try:
+                    old_lead = Lead.objects.get(pk=renewed_from_id)
+                    lead.renewed_from = old_lead
+                    lead.save(update_fields=['renewed_from'])
+                    if old_lead.renewal_assigned_to == request.user:
+                        old_lead.renewal_handled = True
+                        old_lead.save(update_fields=['renewal_handled', 'updated_at'])
+                except Lead.DoesNotExist:
+                    pass
+                    
             messages.success(
                 request,
                 f"Lead {lead.display_id} added — use Update to add email, documents, and notes.",
@@ -286,6 +307,50 @@ def staff_lead_add_view():
             active_nav="leads",
             **_staff_lead_context(request, lead_form=form, show_lead_modal=True),
         )
+
+    return view
+
+
+def staff_lead_start_renewal_view():
+    @portal_role_required(UserProfile.UserType.STAFF)
+    @require_http_methods(["POST"])
+    def view(request, pk):
+        old_lead = get_object_or_404(Lead, pk=pk)
+        
+        # Ensure they are assigned to this renewal
+        if old_lead.renewal_assigned_to != request.user:
+            messages.error(request, "You are not assigned to renew this lead.")
+            return redirect(STAFF_LEAD_LIST)
+            
+        staff_branch = get_creator_branch(request.user)
+        branch = staff_branch or old_lead.branch
+        
+        # Clone it
+        new_lead = Lead.objects.create(
+            name=old_lead.name,
+            phone=old_lead.phone,
+            service=old_lead.service,
+            branch=branch,
+            created_by=request.user,
+            renewed_from=old_lead,
+            staff_status=get_default_lead_status(),
+        )
+        
+        new_lead.roadmap_entries.create(
+            created_by=request.user,
+            title="Renewal started",
+            note=f"Staff started renewal from previous lead ({old_lead.display_id}).",
+        )
+        
+        # Mark the old lead's renewal as handled
+        old_lead.renewal_handled = True
+        old_lead.save(update_fields=['renewal_handled', 'updated_at'])
+        
+        messages.success(
+            request,
+            f"Fresh lead {new_lead.display_id} started for renewal! Please update documents and payment.",
+        )
+        return redirect(STAFF_LEAD_LIST)
 
     return view
 
@@ -987,21 +1052,10 @@ def followup_lead_expire_date_view():
                     note=note,
                 )
             messages.success(request, f"Service expiry saved for {lead.display_id}.")
-            return redirect(FOLLOWUP_LEAD_LIST)
-
-        return render_portal_page(
-            request,
-            UserProfile.UserType.FOLLOWUP,
-            "portal/leads/followup_list.html",
-            "Follow-up Leads",
-            active_nav="leads",
-            **_followup_lead_context(
-                request,
-                expire_lead=lead,
-                followup_expire_form=form,
-                show_followup_expire_modal=True,
-            ),
-        )
+            return redirect(request.META.get("HTTP_REFERER") or FOLLOWUP_LEAD_LIST)
+        else:
+            messages.error(request, "Invalid expiry date provided.")
+            return redirect(request.META.get("HTTP_REFERER") or FOLLOWUP_LEAD_LIST)
 
     return view
 

@@ -8,6 +8,7 @@ _NAV = lambda items: items  # noqa: E731 — clarity for large lists
 ADMIN_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "admin_portal:dashboard"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "employees", "label": "Employees", "icon": "bi-people-fill", "url_name": "admin_portal:employees"},
         {"nav_key": "branches", "label": "Branches", "icon": "bi-building-fill", "url_name": "admin_portal:branches"},
         {"nav_key": "roles", "label": "Users & Roles", "icon": "bi-shield-lock-fill", "url_name": "admin_portal:roles"},
@@ -22,6 +23,7 @@ ADMIN_NAV = _NAV(
 FINANCE_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "finance:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "payroll", "label": "Payroll", "icon": "bi-cash-stack", "url_name": "finance:payroll"},
         {"nav_key": "incentives", "label": "Incentives", "icon": "bi-trophy-fill", "url_name": "finance:incentives"},
         {"nav_key": "collections", "label": "Collections", "icon": "bi-wallet2", "url_name": "finance:collections"},
@@ -34,6 +36,7 @@ FINANCE_NAV = _NAV(
 MARKETING_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "marketing:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "campaigns", "label": "Campaigns", "icon": "bi-megaphone-fill", "url_name": "marketing:campaigns"},
         {"nav_key": "creatives", "label": "Creatives", "icon": "bi-palette-fill", "url_name": "marketing:creatives"},
         {"nav_key": "leads", "label": "Lead Generation", "icon": "bi-funnel-fill", "url_name": "marketing:leads"},
@@ -45,6 +48,7 @@ MARKETING_NAV = _NAV(
 BRANCH_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "branch:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "all_leads", "label": "All leads", "icon": "bi-people-fill", "url_name": "branch:all_leads"},
         {
             "nav_key": "lead_history",
@@ -63,6 +67,7 @@ BRANCH_NAV = _NAV(
 ACCOUNTANT_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "accountant:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "collections", "label": "Collections", "icon": "bi-wallet2", "url_name": "accountant:collections"},
         {"nav_key": "invoices", "label": "Invoices", "icon": "bi-file-earmark-text-fill", "url_name": "accountant:invoices"},
         {"nav_key": "reports", "label": "Branch Reports", "icon": "bi-bar-chart-fill", "url_name": "accountant:reports"},
@@ -74,6 +79,7 @@ ACCOUNTANT_NAV = _NAV(
 STAFF_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "staff:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "leads", "label": "Leads", "icon": "bi-person-plus-fill", "url_name": "staff:lead_list"},
         {"nav_key": "calendar", "label": "Expiry calendar", "icon": "bi-calendar3", "url_name": "staff:calendar"},
         {"nav_key": "pipeline", "label": "Sales Pipeline", "icon": "bi-funnel-fill", "url_name": "staff:pipeline"},
@@ -86,6 +92,7 @@ STAFF_NAV = _NAV(
 FOLLOWUP_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "followup:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "leads", "label": "Follow-up Leads", "icon": "bi-telephone-fill", "url_name": "followup:lead_list"},
         {"nav_key": "all_leads", "label": "Leads", "icon": "bi-people-fill", "url_name": "followup:all_leads"},
         {"nav_key": "calendar", "label": "Expiry calendar", "icon": "bi-calendar3", "url_name": "followup:calendar"},
@@ -97,6 +104,7 @@ FOLLOWUP_NAV = _NAV(
 BACKOFFICE_NAV = _NAV(
     [
         {"nav_key": "dashboard", "label": "Dashboard", "icon": "bi-grid-1x2-fill", "url_name": "backoffice:index"},
+        {"nav_key": "notifications", "label": "Notifications", "icon": "bi-bell-fill", "url_name": "core:notifications"},
         {"nav_key": "pending", "label": "Pending Verifications", "icon": "bi-hourglass-split", "url_name": "backoffice:pending_verifications"},
         {"nav_key": "team", "label": "Team", "icon": "bi-person-badge-fill", "url_name": "backoffice:team"},
         {"nav_key": "procedures", "label": "Procedure review", "icon": "bi-list-check", "url_name": "backoffice:procedure_reviews"},

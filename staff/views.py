@@ -9,6 +9,7 @@ from core.lead_portal import (
     staff_lead_update_view,
     staff_lead_search_api_view,
     staff_lead_contact_api_view,
+    staff_lead_start_renewal_view,
 )
 from core.lead_calendar import (
     branch_expiry_leads_queryset,
@@ -30,6 +31,7 @@ lead_update = staff_lead_update_view()
 lead_status = staff_lead_status_view()
 lead_search = staff_lead_search_api_view()
 lead_contact = staff_lead_contact_api_view()
+lead_start_renewal = staff_lead_start_renewal_view()
 calendar = service_expiry_calendar_view(
     UserProfile.UserType.STAFF,
     staff_expiry_leads_queryset,

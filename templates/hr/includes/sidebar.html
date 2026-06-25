@@ -17,8 +17,17 @@
                 {% for item in section.items %}
                 <li>
                     <a class="nav-link-item{% if active_nav == item.nav_key %} active{% endif %}" href="{% url item.url_name %}">
-                        <span class="nav-icon"><i class="{{ item.icon }}"></i></span>
+                        <span class="nav-icon">
+                            {% if item.nav_key == 'notifications' and total_notification_count %}
+                            <i class="bi bi-bell-fill nav-icon-alert"></i>
+                            {% else %}
+                            <i class="{{ item.icon }}"></i>
+                            {% endif %}
+                        </span>
                         <span class="nav-link-text">{{ item.label }}</span>
+                        {% if item.nav_key == 'notifications' and total_notification_count %}
+                        <span class="nav-badge nav-badge-alert">{{ total_notification_count }}</span>
+                        {% endif %}
                     </a>
                 </li>
                 {% endfor %}

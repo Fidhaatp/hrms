@@ -19,6 +19,7 @@ urlpatterns = [
     path("leads/<int:pk>/edit/", views.lead_edit, name="lead_edit"),
     path("leads/<int:pk>/update/", views.lead_update, name="lead_update"),
     path("leads/<int:pk>/status/", views.lead_status, name="lead_status"),
+    path("leads/<int:pk>/start-renewal/", views.lead_start_renewal, name="lead_start_renewal"),
     path("calendar/", views.calendar, name="calendar"),
     path("pipeline/", views.pipeline, name="pipeline"),
     path("targets/", views.targets, name="targets"),

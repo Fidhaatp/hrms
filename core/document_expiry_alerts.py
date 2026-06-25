@@ -108,6 +108,7 @@ def _build_alerts(docs_qs):
                 "document_label": label,
                 "expiry_date": expiry,
                 "days_left": days_left,
+                "days_ago": abs(days_left) if days_left < 0 else 0,
                 "employee_name": employee_name,
                 "employee_username": user.get_username(),
                 "branch_name": branch.name if branch else "—",
@@ -147,6 +148,9 @@ def document_expiry_alerts_for_hr():
 
 
 def document_expiry_alerts_for_request(user):
+    if user.is_superuser:
+        return document_expiry_alerts_for_hr()
+
     profile = getattr(user, "profile", None)
     if not profile:
         return []
@@ -154,11 +158,4 @@ def document_expiry_alerts_for_request(user):
     if profile.user_type == UserProfile.UserType.HR:
         return document_expiry_alerts_for_hr()
 
-    if profile.user_type == UserProfile.UserType.BACKOFFICE:
-        return []
-
-    if profile.user_type == UserProfile.UserType.BRANCH:
-        manager = getattr(user, "branch_manager_profile", None)
-        return document_expiry_alerts_for_branch(manager.branch if manager else None)
-
-    return document_expiry_alerts_for_user(user)
+    return []
