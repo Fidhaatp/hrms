@@ -1,6 +1,7 @@
 <button type="button"
     class="service-expire-chip service-expire-chip--{{ lead.service_expire_chip_style }} followup-expire-btn"
-    title="{% if lead.service_expire_date %}Update service expiry{% else %}Set service expiry{% endif %}"
+    title="{% if lead.active_procedure_status.label != 'Completed' and lead.active_procedure_status.label != '—' %}Complete all procedures first{% elif lead.service_expire_date %}Update service expiry{% else %}Set service expiry{% endif %}"
+    {% if lead.active_procedure_status.label != 'Completed' and lead.active_procedure_status.label != '—' %}disabled{% endif %}
     data-name="{{ lead.name|escapejs }}"
     data-service-expire-date="{% if lead.service_expire_date %}{{ lead.service_expire_date|date:'Y-m-d' }}{% endif %}"
     data-url="{% url 'followup:lead_expire_date' lead.pk %}">

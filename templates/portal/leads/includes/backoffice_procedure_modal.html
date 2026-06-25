@@ -47,25 +47,48 @@ function openBackofficeProcedureModal(btn) {
         const row = document.createElement('div');
         const reviewForm = !readonly && step.status === 'pending' && step.step_id && reviewBase
             ? `
-            <form method="post" action="${reviewBase.replace('/0/', '/' + step.step_id + '/')}" class="procedure-review-form mt-3 pt-3 border-top">
+            <form method="post" action="${reviewBase.replace('/0/', '/' + step.step_id + '/')}" class="procedure-review-form mt-3 pt-3 border-top" enctype="multipart/form-data">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                <label class="form-label branch-form-label mb-1">Review note</label>
-                <textarea name="review_note" class="form-control mb-3" rows="2" placeholder="Optional note"></textarea>
+                
+                <div class="mb-3">
+                    <label class="form-label branch-form-label mb-2 d-block">Is the typist checked it?</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check typist-radio" name="typist_checked" id="typistYes_${step.step_id}" value="True" onchange="toggleBoReviewForm(this)" required>
+                        <label class="btn btn-outline-success" for="typistYes_${step.step_id}">Yes</label>
+
+                        <input type="radio" class="btn-check typist-radio" name="typist_checked" id="typistNo_${step.step_id}" value="False" onchange="toggleBoReviewForm(this)" required>
+                        <label class="btn btn-outline-danger" for="typistNo_${step.step_id}">No</label>
+                    </div>
+                </div>
+
+                <div class="bo-upload-section d-none mb-3">
+                    <label class="form-label branch-form-label mb-1">Upload Document</label>
+                    <input type="file" name="backoffice_document" class="form-control form-control-sm">
+                </div>
+
+                <div class="bo-note-section mb-3">
+                    <label class="form-label branch-form-label mb-1">Review note</label>
+                    <textarea name="review_note" class="form-control" rows="2" placeholder="Note required if not checked"></textarea>
+                </div>
+
                 <div class="d-flex justify-content-end gap-2">
-                    <button type="submit" name="action" value="approve" class="btn btn-success">Approve</button>
-                    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>`
             : '';
         const docLink = step.doc_url
             ? `<div class="small mt-1"><a href="${step.doc_url}" target="_blank" rel="noopener" class="text-decoration-none"><i class="bi bi-paperclip me-1"></i>${step.doc_name || 'View document'}</a></div>`
             : (step.doc_name ? `<div class="small text-muted mt-1"><i class="bi bi-paperclip me-1"></i>${step.doc_name}</div>` : '');
+        const boDocLink = step.backoffice_doc_url
+            ? `<div class="small mt-1"><a href="${step.backoffice_doc_url}" target="_blank" rel="noopener" class="text-decoration-none"><i class="bi bi-file-earmark-check me-1"></i>Typist doc: ${step.backoffice_doc_name || 'View document'}</a></div>`
+            : (step.backoffice_doc_name ? `<div class="small text-muted mt-1"><i class="bi bi-file-earmark-check me-1"></i>Typist doc: ${step.backoffice_doc_name}</div>` : '');
         row.className = 'procedure-step-card border rounded p-3 mb-2';
         row.innerHTML = `
             <div class="d-flex justify-content-between align-items-start gap-3">
                 <div class="flex-grow-1 min-width-0">
                     <div class="small fw-semibold">${step.order}. ${step.name}</div>
                     ${docLink}
+                    ${boDocLink}
                     ${step.followup_note ? `<div class="small text-muted mt-1">Follow-up: ${step.followup_note}</div>` : ''}
                     ${step.review_note ? `<div class="small text-muted mt-1">Review: ${step.review_note}</div>` : ''}
                 </div>
@@ -81,4 +104,18 @@ function openBackofficeProcedureModal(btn) {
 document.querySelectorAll('.backoffice-procedure-btn').forEach((btn) => {
     btn.addEventListener('click', () => openBackofficeProcedureModal(btn));
 });
+
+function toggleBoReviewForm(radio) {
+    const form = radio.closest('form');
+    if (!form) return;
+    const uploadSection = form.querySelector('.bo-upload-section');
+    const noteSection = form.querySelector('.bo-note-section');
+    if (radio.value === 'True') {
+        if (uploadSection) uploadSection.classList.remove('d-none');
+        if (noteSection) noteSection.classList.add('d-none');
+    } else {
+        if (uploadSection) uploadSection.classList.add('d-none');
+        if (noteSection) noteSection.classList.remove('d-none');
+    }
+}
 </script>

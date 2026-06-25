@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.http import JsonResponse
+from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 
 from core.backoffice_utils import (
@@ -68,6 +70,7 @@ from django.db.models import Count, Prefetch
 from core.models import (
     ClientCase,
     Lead,
+    LeadContact,
     LeadDocument,
     LeadExtractedDocument,
     LeadProcedureStep,
@@ -112,6 +115,11 @@ def _staff_lead_context(request, **extra):
                     "to_status", "lost_reason_type", "created_by"
                 ).order_by("-created_at"),
             )
+        )
+        .annotate(
+            call_count=Count('contacts', filter=Q(contacts__contact_type='call')),
+            email_count=Count('contacts', filter=Q(contacts__contact_type='email')),
+            whatsapp_count=Count('contacts', filter=Q(contacts__contact_type='whatsapp')),
         ),
         filters,
     )
@@ -152,6 +160,84 @@ def staff_lead_list_view():
             **_staff_lead_context(request),
         )
 
+    return view
+
+
+def staff_lead_search_api_view():
+    @portal_role_required(UserProfile.UserType.STAFF)
+    @require_http_methods(["GET"])
+    def view(request):
+        q = request.GET.get('q', '').strip()
+        if not q or len(q) < 3:
+            return JsonResponse({'results': []})
+        
+        # Search by name or phone
+        leads = Lead.objects.filter(
+            Q(name__icontains=q) | Q(phone__icontains=q)
+        ).order_by('-created_at')[:10]
+        
+        from core.phone_validation import split_stored_lead_phone
+        
+        results = []
+        for lead in leads:
+            country_code, national_number = split_stored_lead_phone(lead.phone)
+            results.append({
+                'id': lead.id,
+                'name': lead.name,
+                'phone': national_number,
+                'country': country_code,
+            })
+        return JsonResponse({'results': results})
+    return view
+
+
+def staff_lead_contact_api_view():
+    import json
+    @portal_role_required(UserProfile.UserType.STAFF)
+    @require_http_methods(["GET", "POST"])
+    def view(request, pk):
+        lead = get_object_or_404(Lead, pk=pk, created_by=request.user)
+        if request.method == "POST":
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            contact_type = data.get('contact_type')
+            if contact_type not in [c[0] for c in LeadContact.ContactType.choices]:
+                return JsonResponse({'error': 'Invalid contact type'}, status=400)
+            
+            LeadContact.objects.create(
+                lead=lead,
+                staff=request.user,
+                contact_type=contact_type,
+            )
+            # Fetch updated counts
+            lead_annotated = Lead.objects.annotate(
+                call_count=Count('contacts', filter=Q(contacts__contact_type='call')),
+                email_count=Count('contacts', filter=Q(contacts__contact_type='email')),
+                whatsapp_count=Count('contacts', filter=Q(contacts__contact_type='whatsapp')),
+            ).get(pk=lead.pk)
+            return JsonResponse({
+                'success': True,
+                'counts': {
+                    'call': lead_annotated.call_count,
+                    'email': lead_annotated.email_count,
+                    'whatsapp': lead_annotated.whatsapp_count,
+                }
+            })
+        else:
+            contacts = lead.contacts.select_related('staff').order_by('-created_at')
+            history = []
+            for c in contacts:
+                history.append({
+                    'id': c.id,
+                    'type': c.contact_type,
+                    'type_display': c.get_contact_type_display(),
+                    'staff_name': c.staff.get_full_name() if c.staff else 'Unknown',
+                    'date': c.created_at.strftime("%d %b %Y"),
+                    'time': c.created_at.strftime("%I:%M %p").lstrip("0"),
+                })
+            return JsonResponse({'history': history})
     return view
 
 
@@ -619,23 +705,30 @@ def backoffice_procedure_review_view():
             status=LeadProcedureStep.Status.PENDING,
             lead__backoffice_status=Lead.BackofficeStatus.VERIFIED,
         )
-        form = BackofficeProcedureReviewForm(request.POST)
+        form = BackofficeProcedureReviewForm(request.POST, request.FILES)
         if not form.is_valid():
-            messages.error(request, "Invalid action for procedure review.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
             return redirect(BACKOFFICE_PROCEDURE_LIST)
 
-        action = form.cleaned_data["action"]
+        typist_checked = form.cleaned_data["typist_checked"]
+        document = form.cleaned_data.get("backoffice_document")
         note = (form.cleaned_data.get("review_note") or "").strip()
-        if action == "approve":
+        
+        if typist_checked:
             step.status = LeadProcedureStep.Status.APPROVED
+            if document:
+                step.backoffice_document = document
             outcome_label = "approved"
         else:
             step.status = LeadProcedureStep.Status.REJECTED
             outcome_label = "rejected"
+            
         step.review_note = note
         step.reviewed_by = request.user
         step.reviewed_at = timezone.now()
-        step.save(update_fields=["status", "review_note", "reviewed_by", "reviewed_at", "updated_at"])
+        step.save(update_fields=["status", "backoffice_document", "review_note", "reviewed_by", "reviewed_at", "updated_at"])
 
         step.lead.roadmap_entries.create(
             created_by=request.user,

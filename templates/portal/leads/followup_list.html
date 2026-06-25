@@ -82,7 +82,9 @@
                     <td>{% include "portal/leads/includes/service_expire_cell.html" %}</td>
                     <td>
                         <div class="d-flex gap-1 align-items-center flex-nowrap">
-                            <button type="button" class="action-btn followup-expire-btn" title="Service expiry date"
+                            <button type="button" class="action-btn followup-expire-btn" 
+                                title="{% if lead.active_procedure_status.label == 'Completed' or lead.active_procedure_status.label == '—' %}Service expiry date{% else %}Complete all procedures first{% endif %}"
+                                {% if lead.active_procedure_status.label != 'Completed' and lead.active_procedure_status.label != '—' %}disabled{% endif %}
                                 data-name="{{ lead.name|escapejs }}"
                                 data-service-expire-date="{% if lead.service_expire_date %}{{ lead.service_expire_date|date:'Y-m-d' }}{% endif %}"
                                 data-url="{% url 'followup:lead_expire_date' lead.pk %}">
@@ -397,15 +399,23 @@ function renderFollowupProcedureModal(steps) {
     steps.forEach((step) => {
         const row = document.createElement('div');
         row.className = 'd-flex justify-content-between align-items-start border-bottom py-2 gap-2';
-        const meta = step.doc_name
-            ? `<div class="text-muted small mt-1"><i class="bi bi-paperclip me-1"></i>${step.doc_name}</div>`
-            : '';
+
+        const docLink = step.doc_url
+            ? `<div class="small mt-1"><a href="#" class="text-decoration-none lead-file-view-btn" data-url="${step.doc_url}" data-label="${step.doc_name || 'Document'}"><i class="bi bi-paperclip me-1"></i>${step.doc_name || 'View document'}</a></div>`
+            : (step.doc_name ? `<div class="small text-muted mt-1"><i class="bi bi-paperclip me-1"></i>${step.doc_name}</div>` : '');
+        const boDocLink = step.backoffice_doc_url
+            ? `<div class="small mt-1"><a href="#" class="text-decoration-none lead-file-view-btn" data-url="${step.backoffice_doc_url}" data-label="Typist doc: ${step.backoffice_doc_name || 'Document'}"><i class="bi bi-file-earmark-check me-1"></i>Typist doc: ${step.backoffice_doc_name || 'View document'}</a></div>`
+            : (step.backoffice_doc_name ? `<div class="small text-muted mt-1"><i class="bi bi-file-earmark-check me-1"></i>Typist doc: ${step.backoffice_doc_name}</div>` : '');
+
         row.innerHTML = `
-            <div>
+            <div class="flex-grow-1 min-width-0">
                 <div class="small fw-semibold">${step.order}. ${step.name}</div>
-                ${meta}
+                ${docLink}
+                ${boDocLink}
+                ${step.followup_note ? `<div class="small text-muted mt-1">Follow-up: ${step.followup_note}</div>` : ''}
+                ${step.review_note ? `<div class="small text-muted mt-1 text-danger">Review note: ${step.review_note}</div>` : ''}
             </div>
-            <div>${statusBadgeHtml(step.status)}</div>
+            <div class="flex-shrink-0 text-end">${statusBadgeHtml(step.status)}</div>
         `;
         wrap.appendChild(row);
         if (!next && step.can_submit_now) next = step;

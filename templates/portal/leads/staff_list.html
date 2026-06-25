@@ -55,7 +55,20 @@
                         </div>
                     </td>
                     <td class="text-muted small">{{ lead.service.name|default:"—" }}</td>
-                    <td class="small">{{ lead.phone }}</td>
+                    <td class="small">
+                        <div>{{ lead.phone }}</div>
+                        <div class="d-flex gap-1 mt-1">
+                            <span class="badge rounded-pill bg-light text-dark border lead-contact-badge" data-lead-id="{{ lead.pk }}" data-url="{% url 'staff:lead_contact' lead.pk %}" data-lead-name="{{ lead.name|escapejs }}" style="cursor: pointer;" title="Calls">
+                                <i class="bi bi-telephone-fill text-primary"></i> <span id="callCount-{{ lead.pk }}">{{ lead.call_count|default:0 }}</span>
+                            </span>
+                            <span class="badge rounded-pill bg-light text-dark border lead-contact-badge" data-lead-id="{{ lead.pk }}" data-url="{% url 'staff:lead_contact' lead.pk %}" data-lead-name="{{ lead.name|escapejs }}" style="cursor: pointer;" title="Emails">
+                                <i class="bi bi-envelope-fill text-warning"></i> <span id="emailCount-{{ lead.pk }}">{{ lead.email_count|default:0 }}</span>
+                            </span>
+                            <span class="badge rounded-pill bg-light text-dark border lead-contact-badge" data-lead-id="{{ lead.pk }}" data-url="{% url 'staff:lead_contact' lead.pk %}" data-lead-name="{{ lead.name|escapejs }}" style="cursor: pointer;" title="WhatsApp">
+                                <i class="bi bi-whatsapp text-success"></i> <span id="whatsappCount-{{ lead.pk }}">{{ lead.whatsapp_count|default:0 }}</span>
+                            </span>
+                        </div>
+                    </td>
                     <td class="text-center">
                         {% if lead.service_documents_zip %}
                         <i class="bi bi-check-circle-fill text-success" title="Documents uploaded" style="font-size:1.1rem"></i>
@@ -154,6 +167,12 @@
                     <ul class="auth-error-list mb-3">{% for e in lead_form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
                     {% endif %}
                     <div class="row g-3">
+                        <div class="col-12 position-relative">
+                            <label class="form-label branch-form-label text-primary"><i class="bi bi-search me-1"></i>Search existing customer (optional)</label>
+                            <input type="text" id="existingCustomerSearch" class="form-control form-control-sm" placeholder="Search by name or phone..." autocomplete="off">
+                            <div id="existingCustomerResults" class="list-group position-absolute w-100 shadow-sm d-none mt-1" style="z-index: 1050; max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        <div class="col-12"><hr class="my-1"></div>
                         {% if "branch" in lead_form.fields %}
                         <div class="col-12">
                             <label class="form-label branch-form-label">Branch *</label>
@@ -404,6 +423,29 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="contactHistoryModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title branch-modal-title">Contact History: <span id="contactLeadName" class="text-primary"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-sm btn-outline-primary flex-fill log-contact-btn" data-type="call"><i class="bi bi-telephone-fill"></i> Log Call</button>
+                    <button class="btn btn-sm btn-outline-warning flex-fill log-contact-btn" data-type="email"><i class="bi bi-envelope-fill"></i> Log Email</button>
+                    <button class="btn btn-sm btn-outline-success flex-fill log-contact-btn" data-type="whatsapp"><i class="bi bi-whatsapp"></i> Log WhatsApp</button>
+                </div>
+                <div class="text-center py-3 d-none" id="contactLoading">
+                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                </div>
+                <div class="list-group list-group-flush" id="contactHistoryList" style="max-height: 300px; overflow-y: auto;"></div>
+                <div class="text-muted small text-center mt-3 d-none" id="contactHistoryEmpty">No contact history.</div>
             </div>
         </div>
     </div>
@@ -709,4 +751,150 @@ document.addEventListener('DOMContentLoaded', () => {
     bootstrap.Modal.getOrCreateInstance(document.getElementById('updateLeadModal')).show();
 });
 {% endif %}
+document.getElementById('existingCustomerSearch')?.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    const resultsContainer = document.getElementById('existingCustomerResults');
+    if (query.length < 3) {
+        resultsContainer.classList.add('d-none');
+        return;
+    }
+    
+    fetch(`{% url 'staff:lead_search' %}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            resultsContainer.innerHTML = '';
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(lead => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'list-group-item list-group-item-action py-2';
+                    btn.innerHTML = `<div class="fw-semibold">${lead.name}</div><div class="small text-muted">${lead.phone}</div>`;
+                    btn.onclick = () => {
+                        document.getElementById('id_name').value = lead.name;
+                        document.getElementById('id_phone').value = lead.phone;
+                        if (lead.country) {
+                            document.getElementById('id_phone_country').value = lead.country;
+                            applyLeadPhoneCountryRules();
+                        }
+                        resultsContainer.classList.add('d-none');
+                        e.target.value = '';
+                    };
+                    resultsContainer.appendChild(btn);
+                });
+                resultsContainer.classList.remove('d-none');
+            } else {
+                const div = document.createElement('div');
+                div.className = 'list-group-item py-2 text-muted small';
+                div.textContent = 'No matching customers found.';
+                resultsContainer.appendChild(div);
+                resultsContainer.classList.remove('d-none');
+            }
+        });
+});
+
+let currentContactUrl = '';
+let currentLeadId = '';
+
+function openContactHistoryModal(btn) {
+    currentContactUrl = btn.dataset.url;
+    currentLeadId = btn.dataset.leadId;
+    document.getElementById('contactLeadName').textContent = btn.dataset.leadName || '';
+    
+    const list = document.getElementById('contactHistoryList');
+    const empty = document.getElementById('contactHistoryEmpty');
+    const loading = document.getElementById('contactLoading');
+    
+    list.innerHTML = '';
+    empty.classList.add('d-none');
+    loading.classList.remove('d-none');
+    
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('contactHistoryModal')).show();
+    
+    fetch(currentContactUrl)
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('d-none');
+            renderContactHistory(data.history);
+        });
+}
+
+function renderContactHistory(history) {
+    const list = document.getElementById('contactHistoryList');
+    const empty = document.getElementById('contactHistoryEmpty');
+    list.innerHTML = '';
+    if (!history || history.length === 0) {
+        empty.classList.remove('d-none');
+        return;
+    }
+    empty.classList.add('d-none');
+    
+    const icons = {
+        'call': '<i class="bi bi-telephone-fill text-primary"></i>',
+        'email': '<i class="bi bi-envelope-fill text-warning"></i>',
+        'whatsapp': '<i class="bi bi-whatsapp text-success"></i>'
+    };
+    
+    history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-group-item px-0 py-2 border-bottom';
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="fw-semibold small">${icons[item.type] || ''} ${item.type_display} by ${item.staff_name}</div>
+                <div class="text-muted" style="font-size: 11px;">${item.date} ${item.time}</div>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+document.querySelectorAll('.log-contact-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (!currentContactUrl) return;
+        const type = this.dataset.type;
+        const originalHtml = this.innerHTML;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        this.disabled = true;
+        
+        fetch(currentContactUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({contact_type: type})
+        })
+        .then(res => res.json())
+        .then(data => {
+            this.innerHTML = originalHtml;
+            this.disabled = false;
+            if (data.success) {
+                // Update badges on the main page
+                document.getElementById(`callCount-${currentLeadId}`).textContent = data.counts.call;
+                document.getElementById(`emailCount-${currentLeadId}`).textContent = data.counts.email;
+                document.getElementById(`whatsappCount-${currentLeadId}`).textContent = data.counts.whatsapp;
+                
+                // Refresh modal
+                document.getElementById('contactHistoryList').innerHTML = '';
+                document.getElementById('contactLoading').classList.remove('d-none');
+                fetch(currentContactUrl)
+                    .then(r => r.json())
+                    .then(d => {
+                        document.getElementById('contactLoading').classList.add('d-none');
+                        renderContactHistory(d.history);
+                    });
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.lead-contact-badge').forEach((btn) => {
+    btn.addEventListener('click', () => openContactHistoryModal(btn));
+});
+
+document.addEventListener('click', function(e) {
+    const resultsContainer = document.getElementById('existingCustomerResults');
+    if (resultsContainer && !e.target.closest('#existingCustomerSearch') && !e.target.closest('#existingCustomerResults')) {
+        resultsContainer.classList.add('d-none');
+    }
+});
 </script>

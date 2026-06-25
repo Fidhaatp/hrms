@@ -886,6 +886,8 @@ class Lead(models.Model):
                     "step_id": step.pk if step else None,
                     "doc_name": step.document_filename if step and step.document else "",
                     "doc_url": step.document.url if step and step.document else "",
+                    "backoffice_doc_name": step.backoffice_document_filename if step and step.backoffice_document else "",
+                    "backoffice_doc_url": step.backoffice_document.url if step and step.backoffice_document else "",
                     "followup_note": step.followup_note if step else "",
                     "review_note": step.review_note if step else "",
                     "reviewed_by": step.reviewed_by.get_username() if step and step.reviewed_by_id else "",
@@ -1459,6 +1461,32 @@ class LeadStaffStatusHistory(models.Model):
         return f"{self.lead.display_id}: {self.from_status_name} → {self.to_status.name}"
 
 
+class LeadContact(models.Model):
+    """Tracks each time a staff member contacts a lead."""
+
+    class ContactType(models.TextChoices):
+        CALL = "call", "Call"
+        EMAIL = "email", "Email"
+        WHATSAPP = "whatsapp", "WhatsApp"
+
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="contacts")
+    staff = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="lead_contacts",
+    )
+    contact_type = models.CharField(max_length=20, choices=ContactType.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.lead.name} contacted via {self.get_contact_type_display()} by {self.staff.get_full_name() if self.staff else 'Unknown'}"
+
+
 class LeadProcedureStep(models.Model):
     """Follow-up submits service procedure step; back office reviews it."""
 
@@ -1479,6 +1507,7 @@ class LeadProcedureStep(models.Model):
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     document = models.FileField(upload_to="leads/procedure_docs/%Y/%m/", blank=True)
+    backoffice_document = models.FileField(upload_to="leads/procedure_docs/backoffice/%Y/%m/", blank=True)
     followup_note = models.TextField(blank=True)
     submitted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -1518,6 +1547,12 @@ class LeadProcedureStep(models.Model):
         if not self.document:
             return ""
         return self.document.name.rsplit("/", 1)[-1]
+
+    @property
+    def backoffice_document_filename(self):
+        if not self.backoffice_document:
+            return ""
+        return self.backoffice_document.name.rsplit("/", 1)[-1]
 
 
 class ApprovalStatus(models.TextChoices):

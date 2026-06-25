@@ -513,12 +513,38 @@ class FollowupProcedureStepForm(forms.Form):
 
 
 class BackofficeProcedureReviewForm(forms.Form):
-    action = forms.ChoiceField(choices=(("approve", "Approve"), ("reject", "Reject")))
+    typist_checked = forms.ChoiceField(
+        choices=(("True", "Yes"), ("False", "No")),
+        required=True,
+        error_messages={"required": "Please select Yes or No for the typist check."},
+    )
+    backoffice_document = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={**FORM_CONTROL}),
+        label="Upload Document",
+    )
     review_note = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={**FORM_CONTROL, "rows": 2, "placeholder": "Optional review note"}),
+        widget=forms.Textarea(attrs={**FORM_CONTROL, "rows": 2, "placeholder": "Note required if not checked"}),
         label="Review note",
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        # Evaluate to boolean
+        typist_checked = cleaned.get("typist_checked") == "True"
+        cleaned["typist_checked"] = typist_checked
+        
+        backoffice_document = cleaned.get("backoffice_document")
+        review_note = (cleaned.get("review_note") or "").strip()
+
+        if typist_checked:
+            if not backoffice_document:
+                self.add_error("backoffice_document", "Upload a document when marking as checked.")
+        else:
+            if not review_note:
+                self.add_error("review_note", "Provide a note when rejecting.")
+        return cleaned
 
 
 class LeadServiceForm(forms.ModelForm):
