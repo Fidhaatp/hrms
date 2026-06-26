@@ -51,7 +51,7 @@ function openBackofficeProcedureModal(btn) {
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 
                 <div class="mb-3">
-                    <label class="form-label branch-form-label mb-2 d-block">Is the typist checked it?</label>
+                    <label class="form-label branch-form-label mb-2 d-block">Has the typist processed it?</label>
                     <div class="btn-group w-100" role="group">
                         <input type="radio" class="btn-check typist-radio" name="typist_checked" id="typistYes_${step.step_id}" value="True" onchange="toggleBoReviewForm(this)" required>
                         <label class="btn btn-outline-success" for="typistYes_${step.step_id}">Yes</label>
