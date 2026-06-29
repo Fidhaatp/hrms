@@ -453,9 +453,13 @@ class FollowupLeadForm(forms.ModelForm):
 class FollowupProcedureStepForm(forms.Form):
     procedure_id = forms.IntegerField(widget=forms.HiddenInput())
     document = forms.FileField(
-        required=True,
+        required=False,
         widget=forms.ClearableFileInput(attrs={**FORM_CONTROL}),
         label="Procedure document",
+    )
+    is_out_of_office_work = forms.BooleanField(
+        required=False,
+        label="Out of office work",
     )
     followup_note = forms.CharField(
         required=False,
@@ -467,14 +471,13 @@ class FollowupProcedureStepForm(forms.Form):
         self.lead = lead
         super().__init__(*args, **kwargs)
 
-    def clean_document(self):
-        doc = self.cleaned_data.get("document")
-        if not doc:
-            raise ValidationError("Upload a document for this procedure step.")
-        return doc
-
     def clean(self):
         cleaned = super().clean()
+        doc = cleaned.get("document")
+        out_of_office = cleaned.get("is_out_of_office_work")
+        if not doc and not out_of_office:
+            self.add_error("document", "Upload a document for this procedure step.")
+
         procedure_id = cleaned.get("procedure_id")
         if not procedure_id:
             return cleaned

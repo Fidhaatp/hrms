@@ -62,6 +62,7 @@
                             data-name="{{ lead.name|escapejs }}"
                             data-status="{{ lead.followup_status_id }}"
                             data-docs-checked="{% if lead.staff_zip_documents_checked %}1{% else %}0{% endif %}"
+                            data-has-docs="{% if lead.service_documents_zip %}1{% else %}0{% endif %}"
                             data-url="{% url 'followup:lead_status' lead.pk %}">
                             {% if lead.followup_status %}
                             <span class="badge-status badge-{{ lead.followup_status.badge_style }}">{{ lead.followup_status.name }}</span>
@@ -209,9 +210,15 @@
                         <div class="small fw-semibold mb-2">Submit next procedure step</div>
                         <div class="mb-2 small text-muted" id="fuNextProcedureLabel"></div>
                         <div class="mb-2">
-                            <label class="form-label branch-form-label" for="fuProcedureDoc">Document *</label>
+                            <label class="form-label branch-form-label" for="fuProcedureDoc" id="fuProcedureDocLabel">Document *</label>
                             <input type="file" name="document" id="fuProcedureDoc" class="form-control" />
                             {% if followup_procedure_form.document.errors %}<div class="text-danger small mt-1">{{ followup_procedure_form.document.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="fuOutOffice" name="is_out_of_office_work">
+                                <label class="form-check-label small fw-semibold text-primary" for="fuOutOffice">Out of office work (skip back office, document optional)</label>
+                            </div>
                         </div>
                         <div class="mb-0">
                             <label class="form-label branch-form-label" for="fuProcedureNote">Note</label>
@@ -280,13 +287,13 @@ function openFollowupDocumentsModal(btn) {
     bootstrap.Modal.getOrCreateInstance(document.getElementById('followupDocumentsModal')).show();
 }
 
-function updateFollowupStatusSubmit(docsChecked) {
+function updateFollowupStatusSubmit(docsChecked, hasDocs) {
     const select = document.getElementById('fuStatusSelect');
     const submit = document.getElementById('followupStatusSubmit');
     const warning = document.getElementById('followupStatusDocsWarning');
     const option = select.options[select.selectedIndex];
     const needsDocs = option && option.dataset.sendsBackoffice === '1';
-    const blocked = needsDocs && docsChecked !== '1';
+    const blocked = needsDocs && hasDocs === '1' && docsChecked !== '1';
     submit.disabled = blocked;
     warning.classList.toggle('d-none', !blocked);
 }
@@ -299,8 +306,10 @@ function openFollowupStatusModal(btn) {
     const hasOption = statusId && Array.from(select.options).some((o) => o.value === statusId);
     select.value = hasOption ? statusId : '';
     document.getElementById('fuStatusNote').value = '';
-    updateFollowupStatusSubmit(btn.dataset.docsChecked || '0');
-    document.getElementById('fuStatusSelect').onchange = () => updateFollowupStatusSubmit(btn.dataset.docsChecked || '0');
+    const docsChecked = btn.dataset.docsChecked || '0';
+    const hasDocs = btn.dataset.hasDocs || '0';
+    updateFollowupStatusSubmit(docsChecked, hasDocs);
+    document.getElementById('fuStatusSelect').onchange = () => updateFollowupStatusSubmit(docsChecked, hasDocs);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('followupStatusModal')).show();
 }
 
@@ -396,6 +405,11 @@ function openFollowupProcedureModal(btn) {
     document.getElementById('followupProcedureService').textContent = btn.dataset.service || '';
     document.getElementById('fuProcedureDoc').value = '';
     document.getElementById('fuProcedureNote').value = '';
+    const outOfficeCheckbox = document.getElementById('fuOutOffice');
+    if (outOfficeCheckbox) {
+        outOfficeCheckbox.checked = false;
+        outOfficeCheckbox.dispatchEvent(new Event('change'));
+    }
     let steps = [];
     try {
         steps = JSON.parse(btn.dataset.steps || '[]');
@@ -414,6 +428,23 @@ document.querySelectorAll('.followup-status-btn').forEach((btn) => {
 document.querySelectorAll('.followup-procedure-btn').forEach((btn) => {
     btn.addEventListener('click', () => openFollowupProcedureModal(btn));
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const outOfficeInput = document.getElementById('fuOutOffice');
+    const docInput = document.getElementById('fuProcedureDoc');
+    const docLabel = document.getElementById('fuProcedureDocLabel');
+    if (outOfficeInput && docInput && docLabel) {
+        outOfficeInput.addEventListener('change', () => {
+            if (outOfficeInput.checked) {
+                docInput.required = false;
+                docLabel.textContent = 'Document';
+            } else {
+                docInput.required = true;
+                docLabel.textContent = 'Document *';
+            }
+        });
+    }
+});
 {% if show_followup_check_modal and check_lead %}
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('followupDocumentsForm').action = "{% url 'followup:lead_check_docs' check_lead.pk %}";
@@ -427,7 +458,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('followupStatusForm').action = "{% url 'followup:lead_status' status_lead.pk %}";
     document.getElementById('followupStatusLeadName').textContent = "{{ status_lead.name|escapejs }}";
     document.getElementById('fuStatusSelect').value = "{{ status_lead.followup_status_id }}";
-    updateFollowupStatusSubmit("{% if status_lead.staff_zip_documents_checked %}1{% else %}0{% endif %}");
+    const docsChecked = "{% if status_lead.staff_zip_documents_checked %}1{% else %}0{% endif %}";
+    const hasDocs = "{% if status_lead.service_documents_zip %}1{% else %}0{% endif %}";
+    updateFollowupStatusSubmit(docsChecked, hasDocs);
+    document.getElementById('fuStatusSelect').onchange = () => updateFollowupStatusSubmit(docsChecked, hasDocs);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('followupStatusModal')).show();
 });
 {% endif %}

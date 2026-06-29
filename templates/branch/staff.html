@@ -27,7 +27,7 @@
         <div class="stat-card card-blue w-100 h-100">
             <div class="stat-label">Branch target</div>
             <div class="stat-value">{{ target_summary.branch_target_amount }}</div>
-            <div class="stat-sub">This month</div>
+            <div class="stat-sub">Daily: {{ target_summary.breakdown.daily_target }} | Wk: {{ target_summary.breakdown.weekly_target }} | Enq: {{ target_summary.branch_enquiry_target }}</div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -78,7 +78,10 @@
                     </td>
                     <td class="small">@{{ row.staff.user.get_username }}</td>
                     <td class="small">{{ row.staff.phone|default:"—" }}</td>
-                    <td class="fw-semibold">{{ row.target_amount }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ row.target_amount }}</div>
+                        <div class="small text-muted fw-normal" style="font-size: 11px;">D: {{ row.daily_target }} / W: {{ row.weekly_target }} / E: {{ row.enquiry_target }}</div>
+                    </td>
                     <td>{{ row.achieved_amount }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
@@ -143,23 +146,41 @@
                             <div class="col-4"><span class="text-muted">Remaining</span><div class="fw-semibold" id="branchRemainingTotal">0</div></div>
                             <div class="col-4"><span class="text-muted">Staff</span><div class="fw-semibold">{{ target_summary.staff_count }}</div></div>
                         </div>
+                        <hr class="my-2 text-muted" style="opacity: 0.2">
+                        <div class="row g-2 small">
+                            <div class="col-4"><span class="text-muted">Branch Daily (25d)</span><div class="fw-semibold text-primary" id="branchDailyLive">0</div></div>
+                            <div class="col-4"><span class="text-muted">Branch Weekly</span><div class="fw-semibold text-primary" id="branchWeeklyLive">0</div></div>
+                            <div class="col-4"><span class="text-muted">Enquiry Target</span><div class="fw-semibold text-primary" id="branchEnquiryLive">0</div></div>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0" style="font-size:13px">
                             <thead>
                                 <tr>
                                     <th>Staff</th>
-                                    <th style="width:180px">Target amount</th>
+                                    <th style="width:70px" class="text-center">Daily</th>
+                                    <th style="width:70px" class="text-center">Weekly</th>
+                                    <th style="width:70px" class="text-center">Enquiry Target</th>
+                                    <th style="width:130px">Monthly Target</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for row in target_summary.staff_rows %}
                                 <tr>
-                                    <td>
+                                    <td class="align-middle">
                                         <div class="fw-semibold">{{ row.staff.display_name }}</div>
                                         <div class="text-muted small">@{{ row.staff.user.get_username }}</div>
                                     </td>
-                                    <td>
+                                    <td class="text-center align-middle">
+                                        <div class="small fw-semibold text-primary branch-staff-live-daily">0</div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="small fw-semibold text-primary branch-staff-live-weekly">0</div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="small fw-semibold text-primary branch-staff-live-enquiry">0</div>
+                                    </td>
+                                    <td class="align-middle">
                                         <input type="number" name="staff_target_{{ row.staff.pk }}"
                                             class="form-control form-control-sm branch-staff-target-input"
                                             min="0" step="0.01" value="{{ row.target_amount }}" />
@@ -203,9 +224,35 @@ function updateBranchTargetTotals() {
     const remainingEl = document.getElementById('branchRemainingTotal');
     if (!branchInput || !assignedEl || !remainingEl) return;
     const branchTotal = parseBranchAmount(branchInput.value);
+    
+    // Live Branch Pace
+    const branchDaily = Math.round(branchTotal / 25);
+    const branchWeekly = branchDaily * 6;
+    const branchEnquiry = Math.ceil(branchTotal / 50) / 2;
+    document.getElementById('branchDailyLive').textContent = branchDaily;
+    document.getElementById('branchWeeklyLive').textContent = branchWeekly;
+    document.getElementById('branchEnquiryLive').textContent = branchEnquiry;
+
     let assigned = 0;
     getBranchStaffInputs().forEach((input) => {
-        assigned += parseBranchAmount(input.value);
+        const amount = parseBranchAmount(input.value);
+        assigned += amount;
+        
+        // Live Staff Pace
+        const row = input.closest('tr');
+        if (row) {
+            const dailyEl = row.querySelector('.branch-staff-live-daily');
+            const weeklyEl = row.querySelector('.branch-staff-live-weekly');
+            const enquiryEl = row.querySelector('.branch-staff-live-enquiry');
+            if (dailyEl && weeklyEl && enquiryEl) {
+                const d = Math.round(amount / 25);
+                const w = d * 6;
+                const e = Math.ceil(amount / 50) / 2;
+                dailyEl.textContent = d;
+                weeklyEl.textContent = w;
+                enquiryEl.textContent = e;
+            }
+        }
     });
     const remaining = Math.max(branchTotal - assigned, 0);
     assignedEl.textContent = assigned.toFixed(2);

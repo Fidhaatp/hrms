@@ -25,7 +25,7 @@
     </div>
 
     <div class="row g-2 g-md-3 mb-0">
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="target-pace-card target-pace-card--monthly">
                 <div class="target-pace-card__icon"><i class="bi bi-calendar3"></i></div>
                 <div class="target-pace-card__label">Monthly</div>
@@ -33,20 +33,28 @@
                 <div class="target-pace-card__hint">{{ tb.remaining_amount }} left</div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="target-pace-card target-pace-card--weekly">
                 <div class="target-pace-card__icon"><i class="bi bi-calendar-week"></i></div>
                 <div class="target-pace-card__label">Weekly pace</div>
                 <div class="target-pace-card__value">{{ tb.weekly_target }}</div>
-                <div class="target-pace-card__hint">Week {{ tb.week_index }} of {{ tb.weeks_in_month }} · need {{ tb.weekly_needed }}</div>
+                <div class="target-pace-card__hint">Week {{ tb.week_index }} of {{ tb.weeks_in_month }}</div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-6 col-md-3">
             <div class="target-pace-card target-pace-card--daily">
                 <div class="target-pace-card__icon"><i class="bi bi-sunrise"></i></div>
                 <div class="target-pace-card__label">Daily pace</div>
                 <div class="target-pace-card__value">{{ tb.daily_target }}</div>
-                <div class="target-pace-card__hint">Day {{ tb.day_of_month }}/{{ tb.days_in_month }} · need {{ tb.daily_needed }}/day</div>
+                <div class="target-pace-card__hint">Day {{ tb.day_of_month }}/{{ tb.days_in_month }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="target-pace-card target-pace-card--enquiry">
+                <div class="target-pace-card__icon"><i class="bi bi-people"></i></div>
+                <div class="target-pace-card__label">Enquiry target</div>
+                <div class="target-pace-card__value">{{ tb.enquiry_target }}</div>
+                <div class="target-pace-card__hint">Total enquiries needed</div>
             </div>
         </div>
     </div>

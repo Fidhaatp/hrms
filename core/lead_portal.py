@@ -334,12 +334,33 @@ def staff_lead_start_renewal_view():
             created_by=request.user,
             renewed_from=old_lead,
             staff_status=get_default_lead_status(),
+            
+            # Preserve details
+            email=old_lead.email,
+            company=old_lead.company,
+            source=old_lead.source,
+            service_documents_zip=old_lead.service_documents_zip,
+            takhlees_id=old_lead.takhlees_id,
+            passport_no=old_lead.passport_no,
+            eid_no=old_lead.eid_no,
         )
+
+        # Clone extracted documents
+        for ext_doc in old_lead.extracted_documents.all():
+            ext_doc.pk = None
+            ext_doc.lead = new_lead
+            ext_doc.save()
+
+        # Clone follow-up uploaded documents
+        for doc in old_lead.documents.all():
+            doc.pk = None
+            doc.lead = new_lead
+            doc.save()
         
         new_lead.roadmap_entries.create(
             created_by=request.user,
             title="Renewal started",
-            note=f"Staff started renewal from previous lead ({old_lead.display_id}).",
+            note=f"Staff started renewal from previous lead ({old_lead.display_id}). Preserved previous documents and details.",
         )
         
         # Mark the old lead's renewal as handled
@@ -1135,16 +1156,24 @@ def followup_lead_procedure_submit_view():
         if form.is_valid():
             procedure = form.cleaned_data["procedure"]
             existing = form.cleaned_data.get("existing_step")
-            document = form.cleaned_data["document"]
+            document = form.cleaned_data.get("document")
             followup_note = (form.cleaned_data.get("followup_note") or "").strip()
+            is_out_of_office = form.cleaned_data.get("is_out_of_office_work")
+
+            new_status = LeadProcedureStep.Status.APPROVED if is_out_of_office else LeadProcedureStep.Status.PENDING
+            review_note = "Out of office work - auto-approved" if is_out_of_office else ""
+            reviewed_by = request.user if is_out_of_office else None
+            reviewed_at = timezone.now() if is_out_of_office else None
+
             if existing:
-                existing.status = LeadProcedureStep.Status.PENDING
-                existing.document = document
+                existing.status = new_status
+                if document:
+                    existing.document = document
                 existing.followup_note = followup_note
                 existing.submitted_by = request.user
-                existing.review_note = ""
-                existing.reviewed_by = None
-                existing.reviewed_at = None
+                existing.review_note = review_note
+                existing.reviewed_by = reviewed_by
+                existing.reviewed_at = reviewed_at
                 existing.save(
                     update_fields=[
                         "status",
@@ -1162,10 +1191,13 @@ def followup_lead_procedure_submit_view():
                 step = LeadProcedureStep.objects.create(
                     lead=lead,
                     procedure=procedure,
-                    status=LeadProcedureStep.Status.PENDING,
+                    status=new_status,
                     document=document,
                     followup_note=followup_note,
                     submitted_by=request.user,
+                    review_note=review_note,
+                    reviewed_by=reviewed_by,
+                    reviewed_at=reviewed_at,
                 )
             lead.followup_assigned_to = request.user
             lead.save(update_fields=["followup_assigned_to", "updated_at"])

@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import calendar
 
@@ -32,14 +33,16 @@ def staff_target_breakdown(target_amount, achieved_amount, today=None):
     day_of_month = today.day
     days_remaining = max(days_in_month - day_of_month, 0)
 
-    daily_target = _int_target(monthly_target / days_in_month) if monthly_target else 0
-    weekly_target = _int_target(monthly_target * 7 / days_in_month) if monthly_target else 0
+    daily_target = _int_target(monthly_target / Decimal("25")) if monthly_target else 0
+    weekly_target = _int_target(daily_target * 6) if monthly_target else 0
+    enquiry_target = math.ceil(float(monthly_target) / 50.0) / 2 if monthly_target else 0
+    
     weeks_in_month = max(1, (days_in_month + 6) // 7)
     week_index = (day_of_month - 1) // 7 + 1
     week_start_day = (week_index - 1) * 7 + 1
     week_end_day = min(week_index * 7, days_in_month)
 
-    expected_by_today = _int_target(daily_target * day_of_month)
+    expected_by_today = min(_int_target(daily_target * day_of_month), _int_target(monthly_target))
     remaining = max(_int_target(monthly_target - achieved), 0)
     daily_needed = _int_target(remaining / days_remaining) if days_remaining else remaining
     weekly_needed = _int_target(daily_needed * min(7, days_remaining)) if days_remaining else remaining
@@ -56,6 +59,7 @@ def staff_target_breakdown(target_amount, achieved_amount, today=None):
         "remaining_amount": remaining,
         "daily_target": daily_target,
         "weekly_target": weekly_target,
+        "enquiry_target": int(enquiry_target) if enquiry_target.is_integer() else enquiry_target,
         "daily_needed": daily_needed,
         "weekly_needed": weekly_needed,
         "expected_by_today": expected_by_today,
@@ -110,10 +114,18 @@ def branch_staff_target_rows(branch, month=None, year=None):
     rows = []
     for member in branch_active_staff(branch):
         target = targets.get(member.user_id)
+        target_amount = target.target_amount if target else Decimal("0")
+        daily_target = _int_target(target_amount / Decimal("25")) if target_amount else 0
+        weekly_target = _int_target(daily_target * 6) if target_amount else 0
+        enquiry_target = math.ceil(float(target_amount) / 50.0) / 2 if target_amount else 0
+        enquiry_target = int(enquiry_target) if enquiry_target.is_integer() else enquiry_target
         rows.append(
             {
                 "staff": member,
-                "target_amount": target.target_amount if target else Decimal("0"),
+                "target_amount": target_amount,
+                "daily_target": daily_target,
+                "weekly_target": weekly_target,
+                "enquiry_target": enquiry_target,
                 "achieved_amount": target.achieved_amount if target else Decimal("0"),
                 "achievement_percent": target.achievement_percent if target else 0,
             }
@@ -142,6 +154,7 @@ def branch_target_summary(branch, month=None, year=None):
         "period_year": year,
         "period_label": breakdown["period_label"],
         "branch_target_amount": branch_amount,
+        "branch_enquiry_target": breakdown["enquiry_target"],
         "assigned_total": assigned_total,
         "remaining": remaining,
         "achieved_total": achieved_total,
